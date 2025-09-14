@@ -19,7 +19,7 @@
   - [Ficheros binarios](#ficheros-binarios)
     - [Ficheros para trabajar con datos primitivos](#ficheros-para-trabajar-con-datos-primitivos)
     - [Fichero para trabajar con Objetos. Serialización](#fichero-para-trabajar-con-objetos-serialización)
-    - [Generar SerialVersionUID](#generar-serialversionuid)
+      - [Generar SerialVersionUID](#generar-serialversionuid)
 
 
 ## Introducción
@@ -670,7 +670,7 @@ Vemos el ejercicio completo en el siguiente ejemplo.
 
 **Ejemplo:** EjemploSerializable
 
-### Generar SerialVersionUID
+#### Generar SerialVersionUID
 
 Es importante declarar el atributo **serialVersionUID** dentro de cualquier clase que implemente **Serializable**
 1. **serialVersionUID**. Se utiliza para indicar la versión de los datos serializados.
@@ -680,9 +680,3 @@ Es importante declarar el atributo **serialVersionUID** dentro de cualquier clas
 > cuando hemos creado un fichero serializable  y lo queremos leer en otra ejecución del programa es obligatorio definir el atributo en la clase. Por ejemplo,  private static final long serialVersionUID=5056103125083778370L
 
 :computer: Hoja de ejercicios 3
-
-
-
-
-
-
