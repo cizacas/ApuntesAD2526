@@ -11,7 +11,7 @@
     - [Gestión de ficheros de texto (Línea a línea)](#gestión-de-ficheros-de-texto-línea-a-línea)
     - [Fichero de texto csv](#fichero-de-texto-csv)
       - [Clase StringTokenizer](#clase-stringtokenizer)
-      - [clase String](#clase-string)
+      - [Clase String](#clase-string)
     - [Ficheros de texto Json](#ficheros-de-texto-json)
       - [La librería Jackson](#la-librería-jackson)
         - [Métodos más utilizados de la librería Jackson](#métodos-más-utilizados-de-la-librería-jackson)
@@ -101,15 +101,15 @@ La clase Files tiene métodos para realizar:
     - isReadable
     - isWritable
     - isExecutable
-    - Etc.
+    - Etc.  
   
-1. Manipulación de ficheros a nivel de sistema
+2. Manipulación de ficheros a nivel de sistema
     - Borrar (delete, deleteIfExists)
     - Copiar (copy)
     - Mover (move)
     - Para crear ficheros: Regulares (createFile) y Temporales (createTempFile)
 
-2. La lectura y escritura con Java NIO de ficheros es mucho más sencilla:
+3. La lectura y escritura con Java NIO de ficheros es mucho más sencilla:
     - Dispone de métodos que agilizan la lectura sobre ficheros de texto: readAllLines, lines, readString (desde Java 11)
     - Disponen de métodos más eficientes para instanciar flujos de caracteres
     - Para flujos de lectura (newBufferedReader). Ojo! No se trata del constructor
@@ -118,7 +118,7 @@ La clase Files tiene métodos para realizar:
     - Para flujos de lectura (newInputStream)
     - Para flujos de escritura (newOutputStream)
 
-3. Files también tiene métodos para trabajar con carpetas o directorios
+4. Files también tiene métodos para trabajar con carpetas o directorios
     - Listar:	Contenido de directorios (newDirectoryStream, list, find, walk)
     - Crear: Crear un directorio (createDirectory, createDirectories) o directorio temporal (createTempDirectory)
 
@@ -127,6 +127,7 @@ La clase Files tiene métodos para realizar:
 ## Flujo de datos
 
 Un **stream o flujo de datos** es un objeto que establece la conexión o vía de comunicación entre el programa y un dispositivo de entrada o de salida (teclado, pantalla, fichero, conexión de Internet). Los flujos nos permitirán introducir o sacar datos de nuestro sistema. Pueden ser de Entrada o de salida.
+
 ![imagen de flujo de datos](img/flujo.jpg)
 
 Ejemplos típicos:
@@ -150,6 +151,7 @@ Ejemplos típicos:
 
 3. Gestión de excepciones (es opcional, pero recomendado).
   - Se puede observar que todos los métodos que utilicen clases de este paquete deben tener en su definición una cláusula throws IOException. Los métodos de estas clases pueden lanzar excepciones de esta clase (o sus hijas) en el transcurso de su ejecución, y dichas excepciones deben de ser capturadas y debidamente gestionadas para evitar problemas.
+  
 4. Se cierra el fichero y se destruye el objeto.
   - Para cerrar un fichero lo que hay que hacer es destruir el objeto. Esto se puede realizar de dos formas, dejando que sea el recolector de basura de Java el que lo destruya cuando no lo necesite (no se recomienda) o destruyendo el objeto explícitamente mediante el uso del método close() del objeto: obj.close().
 
@@ -282,7 +284,9 @@ File fichero = new File("mifichero.txt"); // si ya existe y queremos añadir es 
   } 
 ```
 **Ejemplo:** printWriter
+
 ### Fichero de texto csv
+Un **archivo CSV** (Comma-Separated Values) es un archivo de texto que utiliza comas para separar valores. Cada línea del archivo representa un registro o fila, y cada valor dentro de la línea representa un campo o columna. Los archivos CSV son ampliamente utilizados para almacenar datos tabulares y se pueden abrir y editar fácilmente con programas como Microsoft Excel, Google Sheets o cualquier editor de texto.
 
 #### Clase StringTokenizer 
 La clase **StringTokenizer** en Java proporciona un `método String tokenizador` para dividir una cadena en tokens según un delimitador específico. 
@@ -296,9 +300,10 @@ Usando el método tokenizer String de la clase StringTokenizer , podemos dividir
 StringTokenizer String es una herramienta útil para la manipulación de cadenas y se puede utilizar para analizar `archivos CSV`, URL u otros datos basados ​​en texto. 
 
 La clase StringTokenizer es parte del paquete Java.util y proporciona una forma sencilla de dividir una cadena en tokens. 
+
 La clase tiene dos constructores, uno que toma una cadena para tokenizar y un carácter o cadena delimitador, y otro que toma los mismos argumentos así como un indicador booleano que indica si se incluye o no el delimitador como token. 
 
-Una vez que haya creado un objeto StringTokenizer , puede utilizar sus diversos métodos para recorrer los tokens y realizar diversas operaciones con ellos. 
+Una vez que haya creado un objeto StringTokenizer, puede utilizar sus diversos métodos para recorrer los tokens y realizar diversas operaciones con ellos. 
 
 Ejemplo: Leer una cadena que caracteres y obtener todas las palabras que la componen
 
@@ -319,7 +324,7 @@ Palabra: te Longitud: 2
 Palabra: encuentras Longitud: 10
 Palabra: hoy? Longitud: 4
 ```
-#### clase String
+#### Clase String
 La clase **String** en Java es una clase incorporada que representa una secuencia de caracteres.
 **Método split()**:
 El método split() de la clase String se utiliza para dividir una cadena en subcadenas basadas en un delimitador específico. Este método devuelve una matriz de cadenas que contiene las subcadenas resultantes.
@@ -380,10 +385,8 @@ public class EjemploTextoPlanoJSON {
 ```
 #### La librería Jackson
 Jackson es una biblioteca popular de Java para procesar datos JSON (JavaScript Object Notation). Proporciona una forma sencilla y eficiente de convertir objetos Java a JSON y viceversa. Jackson es ampliamente utilizado en aplicaciones web y servicios RESTful para manejar la serialización y deserialización de datos JSON.
-Ejemplo: Leer una cadena de caracteres y obtener todas las palabras que la componen usando Jackson
 
-
-Código Java para procesar el JSON con Jackson:
+Partiendo del fichero `palabras.json` realizamos el mismo ejercicio pero utilizando la librería Jackson: 
 
 ```java
 import com.fasterxml.jackson.databind.JsonNode;
@@ -446,7 +449,7 @@ En el ejemplo, `ObjectMapper` se usa para leer el texto JSON y convertirlo en un
 - `size()`: Devuelve el número de elementos en un array o campos en un objeto.
 - `iterator()`: Permite recorrer los elementos de un array o los campos de un objeto.
 
-**Ventajas de utilizar la librería Jackson en vez de leer archivos de texto plano:**
+**Ventajas de utilizar la librería Jackson:**
 
 - Permite trabajar directamente con estructuras de datos complejas (objetos, listas, mapas) en formato JSON, facilitando la manipulación y acceso a la información.
 - Realiza la conversión automática entre JSON y objetos Java, evitando el procesamiento manual de cadenas y delimitadores.
@@ -474,6 +477,7 @@ En el ejemplo, `ObjectMapper` se usa para leer el texto JSON y convertirlo en un
       <version>2.20.0</version>
     </dependency>
     ```
+    
   - Para la mayoría de los casos, solo necesitas agregar la dependencia `jackson-databind` en tu `pom.xml`. Esta dependencia incluye automáticamente `jackson-core` y `jackson-annotations` como dependencias transitivas, por lo que no es necesario añadirlas manualmente.
 
 4. **Guardar los cambios**
