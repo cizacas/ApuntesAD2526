@@ -477,7 +477,7 @@ En el ejemplo, `ObjectMapper` se usa para leer el texto JSON y convertirlo en un
       <version>2.20.0</version>
     </dependency>
     ```
-    
+
   - Para la mayoría de los casos, solo necesitas agregar la dependencia `jackson-databind` en tu `pom.xml`. Esta dependencia incluye automáticamente `jackson-core` y `jackson-annotations` como dependencias transitivas, por lo que no es necesario añadirlas manualmente.
 
 4. **Guardar los cambios**
@@ -598,38 +598,6 @@ public static void Escribir(File fichero) {
 ```
 
 El método leer los objetos de un fichero:
-
-```java
-public static void Leer(File fichero) {
-  ObjectInputStream os = null;
-  boolean fin = false;
-  try {
-    os = new ObjectInputStream(new FileInputStream(fichero));
-    Coche coche;
-    while (!fin) {
-      coche = (Coche) os.readObject();//Casting necesario 
-      System.out.println(coche.toString());
-    }
-  } catch (EOFException e) {
-    fin=true;
-  } catch (ClassNotFoundException e) {
-    System.out.println("Error el tipo de objeto no es compatible");
-  } catch (FileNotFoundException e) {
-    System.out.println("No se encontró el archivo");
-  } catch (IOException e) {
-    System.out.println("Error " + e.getMessage());
-  } finally {
-    if (os != null) {
-      try {
-        os.close();
-      } catch (IOException ex) {
-        System.out.println("Error al cerrar el fichero");
-      }
-    }
-  }
-}
-```
-En la lectura se puede aplicar el cierre automático del Try
 
 ```java
 public static void leerFichero(File fichero) {
