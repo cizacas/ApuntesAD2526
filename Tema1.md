@@ -9,7 +9,13 @@
   - [Ficheros de texto](#ficheros-de-texto)
     - [Gestión de fichero de texto (Byte)](#gestión-de-fichero-de-texto-byte)
     - [Gestión de ficheros de texto (Línea a línea)](#gestión-de-ficheros-de-texto-línea-a-línea)
-    - [Clase StringTokenizer](#clase-stringtokenizer)
+    - [Fichero de texto csv](#fichero-de-texto-csv)
+      - [Clase StringTokenizer](#clase-stringtokenizer)
+      - [clase String](#clase-string)
+    - [Ficheros de texto Json](#ficheros-de-texto-json)
+      - [La librería Jackson](#la-librería-jackson)
+        - [Métodos más utilizados de la librería Jackson](#métodos-más-utilizados-de-la-librería-jackson)
+        - [Pasos para instalar la librería Jackson de Maven en NetBeans](#pasos-para-instalar-la-librería-jackson-de-maven-en-netbeans)
   - [Ficheros binarios](#ficheros-binarios)
     - [Ficheros para trabajar con datos primitivos](#ficheros-para-trabajar-con-datos-primitivos)
     - [Fichero para trabajar con Objetos. Serialización](#fichero-para-trabajar-con-objetos-serialización)
@@ -42,8 +48,8 @@ Se introduce por primera vez en Java 1.0, actualmente consta de diferentes clase
 - `Constructores para File`: (Buscar en la API Java)
     - File(string directorioyFichero)
     - File(string directorio, string fichero)
-    - File(File directorio, string fichero)
 - `Métodos importantes`:	
+    - getName(), getPath(), getAbsolutePath(), getParent(), length(), createNewFile(), delete(), exists(), isDirectory(), isFile(), mkdir(), mkdirs(), renameTo(), list(), listFiles().
 - `Otros métodos`
     - canExecute(), canRead(), canWrite(), setExecutable(boolean), isHidden(), lastModified(), setReadable(boolean), setWritable(boolean), setReadOnly()
 
@@ -276,8 +282,9 @@ File fichero = new File("mifichero.txt"); // si ya existe y queremos añadir es 
   } 
 ```
 **Ejemplo:** printWriter
+### Fichero de texto csv
 
-### Clase StringTokenizer 
+#### Clase StringTokenizer 
 La clase **StringTokenizer** en Java proporciona un `método String tokenizador` para dividir una cadena en tokens según un delimitador específico. 
 La cadena del tokenizador puede ser cualquier cadena que separe los tokens, como una 
 coma, un punto y coma o un espacio en blanco. 
@@ -312,7 +319,171 @@ Palabra: te Longitud: 2
 Palabra: encuentras Longitud: 10
 Palabra: hoy? Longitud: 4
 ```
+#### clase String
+La clase **String** en Java es una clase incorporada que representa una secuencia de caracteres.
+**Método split()**:
+El método split() de la clase String se utiliza para dividir una cadena en subcadenas basadas en un delimitador específico. Este método devuelve una matriz de cadenas que contiene las subcadenas resultantes.
+
+Ejemplo: Leer una cadena de caracteres y obtener todas las palabras que la componen usando split()
+
+```java
+  String input = "Hola Mundo! Cómo te encuentras hoy?";
+  String[] palabras = input.split(" ");
+  for (String palabra : palabras) {
+      System.out.println("Palabra: " + palabra + " Longitud: " + palabra.length());
+  }
+```
+Obtenemos la misma salida con la Clase String que si utilizamos la clase StringTokenizer
+
 **Ejemplo:** EjemploCSV
+
+### Ficheros de texto Json
+
+Un **archivo JSON** (JavaScript Object Notation) es un archivo de texto que almacena datos estructurados en formato de objetos y arrays, utilizando una sintaxis basada en pares clave-valor. Es ampliamente utilizado para el intercambio de información entre aplicaciones, especialmente en entornos web y APIs, por su facilidad de lectura tanto para humanos como para máquinas.
+
+Ejemplo: Leer y procesar un archivo JSON como texto plano (sin librerías externas). A continuación figura el contenido del fichero Json `palabras.json`:
+
+```json
+{
+  "palabras": [
+    {"texto": "Hola"},
+    {"texto": "Mundo!"},
+    {"texto": "Cómo"},
+    {"texto": "te"},
+    {"texto": "encuentras"},
+    {"texto": "hoy?"}
+  ]
+}
+```
+
+```java
+import java.io.BufferedReader;
+import java.io.FileReader;
+
+public class EjemploTextoPlanoJSON {
+  public static void main(String[] args) {
+    try (BufferedReader br = new BufferedReader(new FileReader("palabras.json"))) {
+      String linea;
+      while ((linea = br.readLine()) != null) {
+        if (linea.trim().startsWith("{\"texto\":")) {
+          String palabra = linea.trim().replace("{\"texto\": \"", "")
+                        .replace("\"},", "")
+                        .replace("\"}", "");
+          System.out.println("Palabra: " + palabra + " Longitud: " + palabra.length());
+        }
+      }
+    } catch (Exception e) {
+      System.out.println("Error al leer el archivo: " + e.getMessage());
+    }
+  }
+}
+```
+#### La librería Jackson
+Jackson es una biblioteca popular de Java para procesar datos JSON (JavaScript Object Notation). Proporciona una forma sencilla y eficiente de convertir objetos Java a JSON y viceversa. Jackson es ampliamente utilizado en aplicaciones web y servicios RESTful para manejar la serialización y deserialización de datos JSON.
+Ejemplo: Leer una cadena de caracteres y obtener todas las palabras que la componen usando Jackson
+
+
+Código Java para procesar el JSON con Jackson:
+
+```java
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.File;
+import java.io.IOException;
+
+public class EjemploJackson {
+  public static void main(String[] args) {
+    ObjectMapper mapper = new ObjectMapper();
+    try (FileInputStream fis = new FileInputStream("palabras.json")) {
+      JsonNode root = mapper.readTree(fis);
+      JsonNode palabrasArray = root.get("palabras");
+      if (palabrasArray != null && palabrasArray.isArray()) {
+        for (JsonNode palabraNode : palabrasArray) {
+          JsonNode textoNode = palabraNode.get("texto");
+          if (textoNode != null) {
+            String palabra = textoNode.asText();
+            System.out.println("Palabra: " + palabra + " Longitud: " + palabra.length());
+          } else {
+            System.out.println("Error: El nodo 'texto' no existe en una de las palabras.");
+          }
+        }
+      } else {
+        System.out.println("Error: El nodo 'palabras' no existe o no es un array.");
+      }
+    } catch (IOException e) {
+      System.out.println("Error al leer el archivo JSON: " + e.getMessage());
+    } catch (Exception e) {
+      System.out.println("Error inesperado: " + e.getMessage());
+    }
+  }
+}
+```
+Hemos tenido que importar dos clases `JsonNode` y `ObjectMapper` del paquete `com.fasterxml.jackson.databind`
+
+**¿Qué hacen estas clases?**
+
+- **ObjectMapper**: Es la clase principal de Jackson para convertir entre objetos Java y JSON. Permite serializar objetos Java a JSON y deserializar JSON a objetos Java. También proporciona métodos para leer y escribir árboles JSON.
+
+- **JsonNode**: Representa un nodo en el árbol JSON. Permite navegar y acceder a los datos de un JSON de forma estructurada, como si fuera un árbol, facilitando la lectura de valores, arrays y objetos dentro del JSON.
+
+En el ejemplo, `ObjectMapper` se usa para leer el texto JSON y convertirlo en un árbol de nodos `JsonNode`, que luego se recorre para acceder a cada palabra y su longitud.
+
+##### Métodos más utilizados de la librería Jackson
+
+**ObjectMapper:**
+- `readTree(File/String/InputStream)`: Lee un JSON y lo convierte en un árbol de nodos JsonNode.
+- `readValue(File/String/InputStream, Class)`: Convierte un JSON en un objeto Java.
+- `writeValue(File, Object)`: Escribe un objeto Java como JSON en un archivo.
+- `writeValueAsString(Object)`: Convierte un objeto Java a una cadena JSON.
+- `enable(SerializationFeature)`, `disable(DeserializationFeature)`: Configura opciones de serialización/deserialización.
+
+**JsonNode:**
+- `get(String fieldName)`: Obtiene el valor de un campo específico.
+- `asText()`, `asInt()`, `asBoolean()`: Convierte el valor del nodo al tipo correspondiente.
+- `isArray()`, `isObject()`: Verifica el tipo de nodo.
+- `size()`: Devuelve el número de elementos en un array o campos en un objeto.
+- `iterator()`: Permite recorrer los elementos de un array o los campos de un objeto.
+
+**Ventajas de utilizar la librería Jackson en vez de leer archivos de texto plano:**
+
+- Permite trabajar directamente con estructuras de datos complejas (objetos, listas, mapas) en formato JSON, facilitando la manipulación y acceso a la información.
+- Realiza la conversión automática entre JSON y objetos Java, evitando el procesamiento manual de cadenas y delimitadores.
+- Es más seguro y menos propenso a errores, ya que valida la estructura del JSON y detecta inconsistencias.
+- Facilita la integración con APIs y servicios web que utilizan JSON como formato de intercambio.
+- Permite navegar y modificar el árbol de datos de forma sencilla usando clases como JsonNode.
+- Soporta serialización y deserialización avanzada, incluyendo tipos genéricos, fechas y formatos personalizados.
+
+##### Pasos para instalar la librería Jackson de [Maven](https://mvnrepository.com/) en NetBeans
+
+1. **Abrir NetBeans y tu proyecto Maven**
+  - Inicia NetBeans y abre el proyecto Maven donde deseas usar Jackson.
+
+2. **Editar el archivo `pom.xml`**
+  - Haz doble clic en el archivo `pom.xml` de tu proyecto para abrirlo.
+
+3. **Agregar la dependencia de Jackson**
+  - Dentro de la sección `<dependencies>`, añade el siguiente bloque:
+
+    ```xml
+    <!-- https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind -->
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+      <version>2.20.0</version>
+    </dependency>
+    ```
+  - Para la mayoría de los casos, solo necesitas agregar la dependencia `jackson-databind` en tu `pom.xml`. Esta dependencia incluye automáticamente `jackson-core` y `jackson-annotations` como dependencias transitivas, por lo que no es necesario añadirlas manualmente.
+
+4. **Guardar los cambios**
+  - Guarda el archivo `pom.xml`.
+
+5. **Actualizar las dependencias del proyecto**
+  - Haz clic derecho sobre el proyecto en el panel de proyectos y selecciona `Actualizar proyecto` o `Build with Dependencies`.
+
+6. **Verificar la instalación**
+  - Comprueba que la carpeta `Dependencies` del proyecto incluye `jackson-databind`.
 
 :computer: Hoja de ejercicios 2
 
@@ -509,8 +680,6 @@ Es importante declarar el atributo **serialVersionUID** dentro de cualquier clas
 > cuando hemos creado un fichero serializable  y lo queremos leer en otra ejecución del programa es obligatorio definir el atributo en la clase. Por ejemplo,  private static final long serialVersionUID=5056103125083778370L
 
 :computer: Hoja de ejercicios 3
-
-:computer: Hoja de ejercicios 4
 
 
 
