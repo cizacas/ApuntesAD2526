@@ -44,7 +44,6 @@ Se introduce por primera vez en Java 1.0, actualmente consta de diferentes clase
     - File(string directorio, string fichero)
     - File(File directorio, string fichero)
 - `Métodos importantes`:	
-    - getName(), getPath(), getAbsolutePath(), getParent(), length(), createNewFile(), delete(), exists(), isDirectory(), isFile(), mkdir(), mkdirs(), renameTo(),list(),listFiles()
 - `Otros métodos`
     - canExecute(), canRead(), canWrite(), setExecutable(boolean), isHidden(), lastModified(), setReadable(boolean), setWritable(boolean), setReadOnly()
 
