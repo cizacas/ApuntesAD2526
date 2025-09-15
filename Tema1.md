@@ -496,6 +496,8 @@ En el ejemplo, `ObjectMapper` se usa para leer el texto JSON y convertirlo en un
 ### Ficheros para trabajar con datos primitivos
 Para trabajar con ficheros binarios en Java se utilizan las clases **DataInputStream** y **DataOutputStream** 
 que permiten leer y escribir datos primitivos (int, char, float, double, etc.) en formato binario.
+El final del fichero al usar la clase **DataInputStream** se lanza una excepción `EOFException`al intenar leer más allá del final.
+
 Ejemplo: Escribir y leer datos primitivos en un fichero binario
 
 ```java
@@ -514,14 +516,18 @@ public static void escribirDatos(File fichero) {
 
 public static void leerDatos(File fichero) {
   try (DataInputStream dis = new DataInputStream(new FileInputStream(fichero))) {
-    int entero = dis.readInt();
-    double real = dis.readDouble();
-    char caracter = dis.readChar();
-    String cadena = dis.readUTF();
-    System.out.println("Entero: " + entero);
-    System.out.println("Real: " + real);
-    System.out.println("Caracter: " + caracter);
-    System.out.println("Cadena: " + cadena);
+    while (true) {
+      int entero = dis.readInt();
+      double real = dis.readDouble();
+      char caracter = dis.readChar();
+      String cadena = dis.readUTF();
+      System.out.println("Entero: " + entero);
+      System.out.println("Real: " + real);
+      System.out.println("Caracter: " + caracter);
+      System.out.println("Cadena: " + cadena);
+    }
+  } catch (EOFException eof) {
+    // Fin del fichero, salida normal
   } catch (IOException ex) {
     System.err.println(ex.toString());
   }
