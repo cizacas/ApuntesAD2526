@@ -489,6 +489,8 @@ En el ejemplo, `ObjectMapper` se usa para leer el texto JSON y convertirlo en un
 6. **Verificar la instalación**
   - Comprueba que la carpeta `Dependencies` del proyecto incluye `jackson-databind`.
 
+Esta librería tiene también módulos adicionales para procesar **XML**, como `jackson-dataformat-xml` que permiten leer y escribir datos en formato XML, usando la misma API de mapeo de objetos.
+
 :computer: Hoja de ejercicios 2
 
 ## Ficheros binarios
