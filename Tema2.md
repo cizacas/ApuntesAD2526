@@ -101,6 +101,7 @@ Algunas bases de datos relacionales embebidas son:
 
 :computer: Actividad 1
 
+
 ##### AÑADIR EL DRIVER AL PROYECTO JAVA MAVEN
 
 Añadir `la librería SQLite JDBC` lo mejor es ir al [repositorio de maven](https://mvnrepository.com/) y buscar el conector para [SQLite JDBC](https://mvnrepository.com/artifact/org.xerial/sqlite-jdbc)
