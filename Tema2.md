@@ -5,12 +5,14 @@
       - [COMPONENTES DEL JDBC](#componentes-del-jdbc)
         - [DRIVERS](#drivers)
   - [EL DESFASE OBJETO RELACIONAL](#el-desfase-objeto-relacional)
-  - [BASE DE DATOS EMBEBIDAS](#base-de-datos-embebidas)
-    - [BASE DE DATOS EMBEBIDAS RELACIONALES](#base-de-datos-embebidas-relacionales)
-      - [SQLITE](#sqlite)
-        - [AÑADIR EL DRIVER AL PROYECTO JAVA MAVEN](#añadir-el-driver-al-proyecto-java-maven)
-  - [PASO 1 - ESTABLECER CONEXIÓN](#paso-1---establecer-conexión)
-  - [PASO 2 - CREAR Y EJECUTAR SENTENCIAS](#paso-2---crear-y-ejecutar-sentencias)
+  - [CLASIFICACIÓN DE LAS BASES DE DATOS RELACIONALES](#clasificación-de-las-bases-de-datos-relacionales)
+  - [PASO 1: AÑADIR EL DRIVER AL PROYECTO JAVA MAVEN](#paso-1-añadir-el-driver-al-proyecto-java-maven)
+    - [SQLite](#sqlite)
+    - [MySQL](#mysql)
+  - [PASO 2 - ESTABLECER CONEXIÓN](#paso-2---establecer-conexión)
+    - [SQLite](#sqlite-1)
+    - [MySQL](#mysql-1)
+  - [PASO 3 - CLASES PARA MANIPULAR LAS BASES DE DATOS](#paso-3---clases-para-manipular-las-bases-de-datos)
   - [PASO 3 - RECUPERAR Y PROCESAR LOS RESULTADOS](#paso-3---recuperar-y-procesar-los-resultados)
     - [SENTENCIAS PREPARADAS](#sentencias-preparadas)
     - [PATRÓN  DAO( OBJETO DE ACCESO A DATOS)](#patrón--dao-objeto-de-acceso-a-datos)
@@ -75,14 +77,15 @@ Para realizar la conexión a una base de datos desde Java necesitas hacer uso de
 * En su lugar almacenaremos cada uno de los datos miembro de un objeto, uno a uno.
 * Al escribir en la base de datos tendremos que descomponer un objeto en cada uno de sus datos. Al leer de la base de datos, leeremos varias columnas y de cada fila podremos montar un objeto con los datos leídos.
 
-## BASE DE DATOS EMBEBIDAS
-* Una base de datos embebida es una base de datos que se integra directamente en una aplicación o sistema, en lugar de ser un sistema independiente.
-* Se utilizarán si no se almacenan grandes cantidades de información.
-* El motor de almacenamiento está inscrustado en la aplicación y es exclusivo para ella.
-* La BD se inicia al comenzar la aplicación y termina cuando se cierra la aplicación.
-* Casi todas son OpenSource
+## CLASIFICACIÓN DE LAS BASES DE DATOS RELACIONALES
+* __Bases de datos cliente/servidor__ / __Empresariales__: son las que utilizan un servidor de bases de datos que gestiona las peticiones de los clientes. Ejemplos: MySQL, PostgreSQL, Oracle, SQL Server.
 
-### BASE DE DATOS EMBEBIDAS RELACIONALES
+* __Bases de datos embebidas__ / __ligeras__:
+  * Una base de datos embebida es una base de datos que se integra directamente en una aplicación o sistema, en lugar de ser un sistema independiente.
+  * Se utilizarán si no se almacenan grandes cantidades de información.
+  * El motor de almacenamiento está inscrustado en la aplicación y es exclusivo para ella.
+  * La BD se inicia al comenzar la aplicación y termina cuando se cierra la aplicación.
+  * Casi todas son OpenSource
 
 ![base de datos embebidas](img/BDembebidas.jpg)
 
@@ -92,18 +95,11 @@ Algunas bases de datos relacionales embebidas son:
 * [Apache Derby](https://db.apache.org/derby/)
 * [Firebird](https://firebirdsql.org/)
 
-#### SQLITE
-* Es un motor de base de datos SQL embebido, ligero y autónomo.
-* Las BD las guarda en ficheros
-* Hay varias aplicaciones disponibles para gestionar bases de datos SQLite. 
-  * Para descargar un [software que incluye varias herramientas que se ejecutan en consola de comandos](https://www.sqlite.org/download.html)
-  * Descargar e instalar [la herramienta gráfica DB Browser for SQLite](https://sqlitebrowser.org/dl/)
-
 :computer: Actividad 1
 
+## PASO 1: AÑADIR EL DRIVER AL PROYECTO JAVA MAVEN
 
-##### AÑADIR EL DRIVER AL PROYECTO JAVA MAVEN
-
+### SQLite
 Añadir `la librería SQLite JDBC` lo mejor es ir al [repositorio de maven](https://mvnrepository.com/) y buscar el conector para [SQLite JDBC](https://mvnrepository.com/artifact/org.xerial/sqlite-jdbc)
 
 ![añadir driver](img/sqllite.jpg)
@@ -120,7 +116,46 @@ Añadir la dependencia al archivo `pom.xml`
         </dependency>
     </dependencies>
 ```
-Debemos especificar el origen de datos ( cual es la base de datos).El origen de datos se especifica con una URL que tiene un formato para   para cada SGBD. Para SQLite es:
+
+### MySQL
+Para añadir el conector de MySQL a un proyecto Maven, lo mejor es ir al [repositorio de maven](https://mvnrepository.com/) y buscar el conector para [MySQL Connector/J](https://mvnrepository.com/artifact/mysql/mysql-connector-java)
+![añadir driver](img/anadirdrivermaven.png)
+
+Añadir la dependencia al archivo `pom.xml`
+
+```xml
+   <dependencies>
+        <!-- https://mvnrepository.com/artifact/mysql/mysql-connector-java -->
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <version>8.0.29</version>
+        </dependency>
+    </dependencies>
+```
+O bien descargar el conector desde la [página oficial de MySQL](https://dev.mysql.com/downloads/connector/j/) y añadirlo al proyecto.
+
+* El JAR del conector para la versión que requieras, por ejemplo la 8.0.29
+* Abrir el proyecto e ir al directorio __Dependencies__
+* Y situados en ese directorio con botón derecho aparece la opción
+
+![añadir driver](img/anadirdriver.png)
+
+![añadir driver](img/anadirdriver2.png)
+
+* Una vez añadido aparece
+
+![añadir driver](img/anadirdriver3.png)
+
+* En el fichero POM.XML, aparece la dependencia añadida
+  
+![añadir driver](img/anadirdriver4.png)
+
+
+## PASO 2 - ESTABLECER CONEXIÓN
+Debemos especificar el origen de datos ( cual es la base de datos).**El origen de datos** se especifica con una URL que tiene un formato para cada SGBD. 
+
+### SQLite
 
 ```
 jdbc:sqlite:ruta_fichero_bd
@@ -144,38 +179,24 @@ try{
 }
 
 ```
+### MySQL
 
-:computer: Actividad 2
+```
+jdbc:mysql://host:puerto/nombre_base_datos
+```
+donde:
+* `host` es el nombre del servidor donde se encuentra la base de datos (localhost si es en el mismo equipo)
+* `puerto` es el puerto por donde escucha la base de datos
+* `nombre_base_datos` es el nombre de la base de datos a la que nos queremos conectar
 
-
-
-* El JAR del conector para esta versión se denomina mysql-connector-java-8.0.29.jar
-* Abrir el proyecto e ir al directorio __Dependencies__
-* Y situados en ese directorio con botón derecho aparece la opción
-
-![añadir driver](img/anadirdriver.png)
-
-![añadir driver](img/anadirdriver2.png)
-
-* Una vez añadido aparece
-
-![añadir driver](img/anadirdriver3.png)
-
-
-* En el fichero POM.XML, aparece la dependencia añadida
-  
-![añadir driver](img/anadirdriver4.png)
-
- 
-Otra opción de instalación es simplemente añadir directamente en el POM.XML la dependencia desde el [repositorio de maven el conector](https://mvnrepository.com/artifact/mysql/mysql-connector-java/8.0.29) 
-
-![añadir driver de maven](img/anadirdrivermaven.png)
-
-
-## PASO 1 - ESTABLECER CONEXIÓN
-El código para conectarnos a la BD, previamente arrancado el SGBD y creada la BD que sigue el patrón Singleton:
+El SBGB debe estar arrancado y la base de datos creada.
 
 __El patrón Singleton__ en Java es un patrón de diseño que garantiza que tan solo exista un objeto de su tipo y proporciona un único punto de acceso a él para cualquier otro código.
+En acceso a datos, el Singleton es muy útil para:
+
+* Gestores de conexión: Una sola instancia maneja todas las conexiones
+* Configuración de BD: Una instancia única con los parámetros de conexión
+* Pool de conexiones: Control centralizado de las conexiones disponibles
 
 ```java
 /*
@@ -259,7 +280,8 @@ para acceder a la conexión de la base de datos:
 Connection conn = AccesoBaseDatos.getInstance().getConexion();
 ```
 
-## PASO 2 - CREAR Y EJECUTAR SENTENCIAS
+## PASO 3 - CLASES PARA MANIPULAR LAS BASES DE DATOS
+
 
 Para enviar sentencias SQL al controlador de la BD se utiliza el  __objeto Statement__ y el __método createStatement__, suministrando el método SQL con la sentencia a ejecutar.
 
@@ -280,10 +302,9 @@ Ejemplos:
 ```java
 // método que crea la tabla productos
 public static void crearTablas() {
-        Statement sentencia = null;
-        try {
-            Connection conn = AccesoBaseDatos.getInstance().getConn();
-            sentencia = conn.createStatement();
+        try (Connection conn = AccesoBaseDatos.getInstance().getConn();
+             Statement sentencia = conn.createStatement()) {
+            
             // en String tabla codigo sql con el create table
             String tabla = "create table productos(\n"
                     + "  id smallint NOT NULL AUTO_INCREMENT,\n"
@@ -296,15 +317,6 @@ public static void crearTablas() {
 
         } catch (SQLException ex) {
             System.out.println("Error al ejecutar la creacion de tabla " + ex.getMessage());
-        } finally {
-            try {
-                if (sentencia != null) {
-                    sentencia.close();
-                }
-            } catch (SQLException ex) {
-                System.out.println("Error al cerrar la sentencia " + ex.getMessage());
-            }
-
         }
 
     }
@@ -313,47 +325,9 @@ public static void crearTablas() {
 2 Inserta datos en la tabla creada
 
 ```java
- // insertar información en la tabla productos
-   public static void insertarDatos() {
-        Statement sentencia = null;
-        Connection conn = AccesoBaseDatos.getInstance().getConn();
-        try {
-            sentencia = conn.createStatement();
-            // dentro de executeUpdate codigo del insert, update o delete
-            String inserta = "INSERT INTO productos"
-                    + "(nombre,cantidad)"
-                    + "VALUES ('melocotones',8),"
-                    + "('platanos',12),('peras',3)";
-            int resul = sentencia.executeUpdate(inserta);
-            if (resul == 3) {
-                System.out.println("Filas afectadas: " + resul);
-            } else {
-                throw new Exception("error no se han insertado todos los registros");
-            }
-        } catch (SQLException ex) {
-            System.out.println("Error en la inserción de datos " + ex.getMessage());
-        } catch (Exception ex) {
-            System.out.println(ex.getMessage());
-        } finally {
-            try {
-                if (sentencia != null) {
-                    sentencia.close();
-                }
-            } catch (SQLException ex) {
-                System.out.println("Error al cerrar la sentencia " + ex.getMessage());
-            }
-        }
-    }
-```
-para realizar el cierre del Statement utilizamos la cláusula __finally__ para que independiente de si hay error o no se cierre correctamente.
-No cerramos la conexión porque utilizamos Singleton para solo crear una conexión a la base de datos y mantenerla abierta y cerrarla solo al final de la ejecución del programa.
-
-También podemos utilizar la funcionalidad incorpora en la cláusula try para que realice el cierre automático de sentencias
-
-```java
 // insertar información en la tabla productos
 
-public static void insertarDatos2() {
+public static void insertarDatos() {
 
         Connection conn = AccesoBaseDatos.getInstance().getConn();
         try ( Statement sentencia = conn.createStatement();) {
@@ -395,42 +369,7 @@ sentencia.executeQuery (sql);
 Ejemplo
 
 ```java
-
-   public static void mostrarDatos() {
-        Statement sentencia = null;
-        ResultSet rs = null;
-        Connection conn = AccesoBaseDatos.getInstance().getConn();
-        try {
-            sentencia = conn.createStatement();
-            // dentro de executeQuery Codigo de la select
-            String sql = "select id,nombre,cantidad from productos";
-            rs = sentencia.executeQuery(sql);
-            while (rs.next()) {
-                //cada columna se indica, el tipo en el get, y que posicion o 
-                //que nombre tiene en el argumento
-                System.out.print(rs.getInt(1) + " ");
-                System.out.print(rs.getString("nombre") + " ");
-                System.out.println(rs.getInt(3));
-            }
-        } catch (SQLException ex) {
-            System.out.println("Error en la consulta " + ex.getMessage());
-        } finally {
-            try {
-                if (sentencia != null) {
-                    rs.close();
-                    sentencia.close();
-                }
-            } catch (SQLException ex) {
-                System.out.println("Error al cerrar la sentencia " + ex.getMessage());
-            }
-        }
-    }
-```
-Si queremos que se realice `el cierre automático de Statement y ResultSet` la implementación es:
-
-```java
-
-public static void mostrarDatos2() {
+public static void mostrarDatos() {
         // dentro de executeQuery Codigo de la select
         String sql = "select id,nombre,cantidad from productos";
         Connection conn = AccesoBaseDatos.getInstance().getConn();
