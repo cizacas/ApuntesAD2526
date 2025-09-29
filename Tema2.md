@@ -21,7 +21,7 @@
       - [`Resulset getResultSet()`](#resulset-getresultset)
         - [Métodos para obtener datos de columna de la fila seleccionada. Métodos getXXX.](#métodos-para-obtener-datos-de-columna-de-la-fila-seleccionada-métodos-getxxx)
     - [Construcción de un objeto PreparedStatement](#construcción-de-un-objeto-preparedstatement)
-    - [Métodos de PreparedStatement para ejecutar sentencias SQL](#métodos-de-preparedstatement-para-ejecutar-sentencias-sql)
+    - [Métodos de `PreparedStatement` para ejecutar sentencias SQL](#métodos-de-preparedstatement-para-ejecutar-sentencias-sql)
       - [`int executeUpdate()`](#int-executeupdate)
       - [`ResultSet executeQuery()`](#resultset-executequery)
       - [`boolean execute()`](#boolean-execute)
@@ -475,13 +475,13 @@ public static void mostrarDatos() {
 
 ```
 
-**Ejemplo:** ejemplo01
+**Ejemplo:** ejemplo01 y ejemploSQLite
 
 ### Construcción de un objeto PreparedStatement
 Un objeto **PreparedStatement** para ejecutar instrucciones SQL debe construirse con el **método prepareStatement** de la **clase Connection**.
 Al **método prepareStatement** hay que pasarle un **String** que contiene el texto de la sentencia o instrucción SQL preparada.
 
-### Métodos de PreparedStatement para ejecutar sentencias SQL
+### Métodos de `PreparedStatement` para ejecutar sentencias SQL
 Los métodos para ejecutar sentencias SQL son los mismos que los de la clase Statement:
 
 #### `int executeUpdate()`
@@ -593,6 +593,8 @@ try (ResultSet rs = stmt.getGeneratedKeys()) {
 ```
 __Ejemplo:__ ejemplo02
 
+:computer: Actividad 2 Actividad 3 Actividad 4
+
 ### Actualización de datos mediante un `ResultSet`
 * Un objeto `ResultSet` puede ser __actualizable__ si se crea con los parámetros adecuados.
 * Podemos usar una hoja de resultados para realizar inserciones, modificaciones y eliminaciones de filas de la tabla consultada en la hoja de resultados. La nueva situación quedará reflejada en la hoja de resultados.
@@ -660,6 +662,7 @@ if (rs.next()) {
 String sqlIncorrecto = "SELECT nombre, precio FROM productos WHERE nombre LIKE 'Prod%'";
 // Este ResultSet NO será actualizable porque no incluye la PRIMARY KEY
 ```
+:computer: Actividad 5 (1-2)
 
 ## GESTIÓN DE TRANSACCIONES
 
@@ -970,6 +973,8 @@ try (Connection conexion = DriverManager.getConnection(url, usuario, contraseña
 - Si hay error, se deshace todo con `rollback()`
 - Se restaura el auto-commit en el `finally`
 
+:computer: Actividad 5(3)
+
 ## EJECUCION DE PROCEDIMIENTOS ALMACENADOS
 
 * **Los procedimientos almacenados** o **procedures** constan de un conjunto de sentencias SQL y son llamados a **ejecución** en lenguaje SQL mediante una `instrucción CALL`.
@@ -1111,3 +1116,4 @@ public class GestorProductos {
     }
 }
 ```
+:computer: Actividad 6
