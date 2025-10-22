@@ -8,9 +8,11 @@
   - [CLASIFICACIÓN DE LAS BASES DE DATOS RELACIONALES](#clasificación-de-las-bases-de-datos-relacionales)
   - [PASO 1: AÑADIR EL DRIVER AL PROYECTO JAVA MAVEN](#paso-1-añadir-el-driver-al-proyecto-java-maven)
     - [SQLite](#sqlite)
+    - [MariaDB](#mariadb)
     - [MySQL](#mysql)
   - [PASO 2 - ESTABLECER CONEXIÓN](#paso-2---establecer-conexión)
     - [SQLite](#sqlite-1)
+    - [MariaDB](#mariadb-1)
     - [MySQL](#mysql-1)
   - [PASO 3 - CLASES PARA MANIPULAR LAS BASES DE DATOS](#paso-3---clases-para-manipular-las-bases-de-datos)
     - [construcción de un objeto gestor de instrucciones](#construcción-de-un-objeto-gestor-de-instrucciones)
@@ -142,6 +144,21 @@ Añadir la dependencia al archivo `pom.xml`
         </dependency>
     </dependencies>
 ```
+### MariaDB
+Para añadir el conector de MariaDB a un proyecto Maven, lo mejor es ir al [repositorio de maven](https://mvnrepository.com/) y buscar el conector para [MariaDB Connector/J](https://mvnrepository.com/artifact/org.mariadb.jdbc/mariadb-java-client)
+![añadir driver](img/driverMariaDB.jpg)
+Añadir la dependencia al archivo `pom.xml`
+
+```xml
+   <dependencies>
+        <!-- https://mvnrepository.com/artifact/org.mariadb.jdbc/mariadb-java-client -->
+        <dependency>
+            <groupId>org.mariadb.jdbc</groupId>
+            <artifactId>mariadb-java-client</artifactId>
+            <version>3.5.6</version>
+        </dependency>
+    </dependencies>
+```
 
 ### MySQL
 Para añadir el conector de MySQL a un proyecto Maven, lo mejor es ir al [repositorio de maven](https://mvnrepository.com/) y buscar el conector para [MySQL Connector/J](https://mvnrepository.com/artifact/mysql/mysql-connector-java)
@@ -205,6 +222,31 @@ try{
 }
 
 ```
+### MariaDB
+
+```
+jdbc:mariadb://host:puerto/nombre_base_datos
+```
+donde:
+* `host` es el nombre del servidor donde se encuentra la base de datos (localhost si es en el mismo equipo)
+* `puerto` es el puerto por donde escucha la base de datos
+* `nombre_base_datos` es el nombre de la base de datos a la que nos queremos conectar
+
+El SBGB debe estar arrancado y la base de datos creada. Además también según el sistema de autenticación que tenga debemos introducir el usuario y la clave de conexión
+
+Ejemplo:
+```java
+
+Connection conexion=null;
+String url = "jdbc:mariadb://localhost:3306/mi_basedatos";
+try{
+    conexion = DriverManager.getConnection(url,"usuario","clave");
+    if (conexion != null) {
+        System.out.println("Conexión establecida");
+    }
+
+```
+
 ### MySQL
 
 ```
