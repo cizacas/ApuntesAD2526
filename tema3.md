@@ -216,7 +216,7 @@ Elementos clave:
  - `<list>`: colección ordenada que mantiene un índice (columna de posición) en la BD.
  - `<map>`: colección clave → valor mapeada a la BD, donde la clave se guarda en una columna separada.
 
-  Notas sobre uso práctico:
+**Notas sobre uso práctico:**
   - En relaciones bidireccionales hay que decidir el lado `inverse`/`mappedBy` que mantiene la FK para evitar inconsistencias.
   - `cascade` controla si las operaciones (persist, remove...) se propagan a las entidades relacionadas.
   - `fetch` (LAZY/EAGER) define cuándo se cargan las asociaciones; `LAZY` es la opción recomendada por defecto.
@@ -273,7 +273,7 @@ public class Persona {
 }
 ```
 
-Anotaciones comunes (qué hacen):
+**Anotaciones comunes (qué hacen):**
 
 - `@Entity` — marca la clase como entidad persistente que será gestionada por el proveedor JPA/Hibernate.
 - `@Table(name = "...")` — opcional; especifica el nombre de la tabla y parámetros de esquema/índices si se desea.
@@ -286,7 +286,7 @@ Anotaciones comunes (qué hacen):
    - `AUTO`: deja que el proveedor elija la estrategia apropiada según el dialecto/BD; por ejemplo, seleccionará `SEQUENCE` si la BD lo soporta, o `IDENTITY` en otros casos.
    
    Consejos prácticos: usar `IDENTITY` para compatibilidad rápida con MySQL/MariaDB; preferir `SEQUENCE` en DB que soporten secuencias si necesitas rendimiento en inserciones masivas; evitar `TABLE` salvo por portabilidad extrema; `AUTO` es cómodo pero menos predecible.
-   
+
 - `@Column(name = "...", nullable = ..., length = ...)` — mapea un campo a una columna y permite configurar nombre, nulabilidad, longitud y otras propiedades de la columna.
 
 - Relaciones (anotaciones de asociación):
@@ -306,11 +306,7 @@ Estas anotaciones pueden combinarse para definir comportamiento completo de la r
 ## 7. Clases persistentes
 Se denomina **clase persistente** a una clase Java cuyo estado puede guardarse/recuperarse de la base de datos por el proveedor de persistencia (Hibernate). Se marca típicamente con `@Entity` (o con un <class> en HBM).
 
-Recomendaciones:
-- Tener un constructor sin argumentos. 
-- Implementar `equals` y `hashCode` con cuidado (preferible usar la PK si es asignada al crear, o usar un campo natural).
-- Evitar lógica pesada en getters.
-Recomendaciones (breves y prácticas):
+**Recomendaciones:**
 - Tener un constructor sin argumentos (público o protegido): Hibernate lo crea por reflexión.
 - Usar un tipo envolvente para la PK (por ejemplo `Long id`) y anotarla con `@Id` y `@GeneratedValue` cuando se genere en BD; evita tipos primitivos para la PK.
 - Mantener un único modo de acceso: anotar campos (field access) o getters (property access), no mezclar ambos.
