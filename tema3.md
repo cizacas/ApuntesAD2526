@@ -288,6 +288,40 @@ public class Persona {
    Consejos prácticos: usar `IDENTITY` para compatibilidad rápida con MySQL/MariaDB; preferir `SEQUENCE` en DB que soporten secuencias si necesitas rendimiento en inserciones masivas; evitar `TABLE` salvo por portabilidad extrema; `AUTO` es cómodo pero menos predecible.
 
 - `@Column(name = "...", nullable = ..., length = ...)` — mapea un campo a una columna y permite configurar nombre, nulabilidad, longitud y otras propiedades de la columna.
+  - `name`: permite modificar el nombre que tendrá la columna mapeada (si no se usa, será el nombre del atributo).
+  - `length`: nos permite definir el número de caracteres de la columna.
+  - `nullable`: nos permite indicar si la columna mapeada puede o no almacenar valores nulos.
+  - `columnDefinition`: para especificar cual será el tipo de dato en la columna  mapeada.
+  - `insertable`, `updatable`: Cuando se ponen a false, la columna no es considerada para esas operaciones. Útil, por ejemplo, para una columna fecha en la que se asigna en BD por defecto la fecha actual, al hacer una inserción.
+- `@Embedded` y `@Embeddable`- tipos embebidos: Imaginemos que partimos de una tabla de una base de datos en la que un alumno, además del id, nombre y fecha de nacimiento tenga una calle y un número de vivienda.En **OO** podríamos tener una clase *Alumno* y una clase *Direccion*. 
+  
+Podemos definir nuestro modelo de clases de tal forma que mapeemos ambas clases contra la misma tabla alumnos utilizando las anotaciones de JPA `@Embedded` y `@Embeddable`.
+  - *Direccion* sea una clase **Embeddable**. No es una entidad, no es persistente or sí misma.
+  - *Alumno* añadimos un atributo marcado como **Embedded**
+Ejemplo:
+```java
+@Embeddable
+public class Direccion {
+  private String calle;
+  private String numero;
+  // getters y setters
+}
+```
+```java
+@Entity
+public class Alumno {
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
+  private String nombre;
+  private LocalDate fechaNacimiento;
+
+  @Embedded
+  private Direccion direccion;
+  // getters y setters
+}
+``` 
+
 
 - Relaciones (anotaciones de asociación):
   - `@ManyToOne` — muchos → uno; la entidad actual tiene una FK hacia la entidad referenciada. Es el lado propietario de la relación.
@@ -302,6 +336,13 @@ public class Persona {
 - `orphanRemoval = true` — en colecciones, indica que entidades huérfanas (ya no referenciadas) deben eliminarse automáticamente.
 
 Estas anotaciones pueden combinarse para definir comportamiento completo de la relación (propietario/inverso, cascada y estrategia de carga). En general, elegir `LAZY` para colecciones y controlar cascadas explícitamente evita sorpresas en producción.
+
+Cuando mapeamos una entidad, todos sus atributos son considerados persistentes.Excepto los declarados **static y/o final** y los anotados como transitorios con `@Transient`.
+
+Todo **atributo persistente** se mapea a una columna en una tabla de la base de datos.
+
+**Hibernate** escoge la mejor correspondencia de tipos de datos en el SGBD para los tipos Java que hayamos usado en las entidades.
+
 
 ## 7. Clases persistentes
 Se denomina **clase persistente** a una clase Java cuyo estado puede guardarse/recuperarse de la base de datos por el proveedor de persistencia (Hibernate). Se marca típicamente con `@Entity` (o con un <class> en HBM).
