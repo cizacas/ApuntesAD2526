@@ -122,7 +122,7 @@ Configuración clásica Nativa con `hibernate.cfg.xml` (ubicación típica: `src
     <property name="hibernate.connection.password">clave</property>
     <property name="hibernate.dialect">org.hibernate.dialect.MySQL8Dialect</property>
     <property name="hibernate.show_sql">true</property>
-  <property name="hibernate.hbm2ddl.auto">validate</property>
+    <property name="hibernate.hbm2ddl.auto">validate</property>
     <!-- mapping entries (si se usan ficheros .hbm.xml)
       Ejemplo: una entrada <mapping> por cada fichero .hbm.xml en el classpath, por ejemplo:
       <mapping resource="ejemplo/enativo/persona.hbm.xml"/>
