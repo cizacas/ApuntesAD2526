@@ -259,22 +259,38 @@ public class Persona {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
-  @Column(name = "nombre", nullable = false, length = 100)
-  private String nombre;
+```
+```java
+// EJEMPLO equivalente con JPA (EntityManager)
+EntityManagerFactory emf = Persistence.createEntityManagerFactory("miPU");
+EntityManager em = emf.createEntityManager();
+EntityTransaction tx = null;
+try {
+  tx = em.getTransaction();
+  tx.begin();
 
-  @Column(name = "edad")
-  private Integer edad;
+  // operaciones en la transacción
+  Persona p = new Persona();
+  p.setNombre("María");
+  em.persist(p); // persist -> pasa a estado managed
 
-  @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "direccion_id")
-  private Direccion direccion;
+  // ejemplo: buscar y actualizar
+  Persona otra = em.find(Persona.class, 1L);
+  if (otra != null) {
+    otra.setEdad(40);
+    // no es necesario llamar a merge si 'otra' es managed
+  }
 
-  @OneToMany(mappedBy = "persona", cascade = CascadeType.ALL, orphanRemoval = true)
-  private Set<Telefono> telefonos;
-
-  // getters y setters
+  tx.commit();
+} catch (RuntimeException e) {
+  if (tx != null && tx.isActive()) tx.rollback();
+  throw e;
+} finally {
+  em.close();
+  emf.close();
 }
 ```
+
 :computer: Hoja_02 (ejercicio 1)
 
 **Anotaciones comunes (qué hacen):**
@@ -300,7 +316,7 @@ public class Persona {
 - `@Embedded` y `@Embeddable`- tipos embebidos: Imaginemos que partimos de una tabla de una base de datos en la que un alumno, además del id, nombre y fecha de nacimiento tenga una calle y un número de vivienda.En **OO** podríamos tener una clase *Alumno* y una clase *Direccion*. 
   
 Podemos definir nuestro modelo de clases de tal forma que mapeemos ambas clases contra la misma tabla alumnos utilizando las anotaciones de JPA `@Embedded` y `@Embeddable`.
-  - *Direccion* sea una clase **Embeddable**. No es una entidad, no es persistente or sí misma.
+  - *Direccion* sea una clase **Embeddable**. No es una entidad, no es persistente por sí misma.
   - *Alumno* añadimos un atributo marcado como **Embedded**
 Ejemplo:
 ```java
@@ -342,6 +358,22 @@ Con JPA podemos modelarlas estas asociaciones. Pueden ser unidireccionales o bid
 - `@JoinColumn(name = "columna_fk")` — especifica la columna de la tabla que almacena la FK para la relación (se usa en el lado propietario).
 - `mappedBy` (atributo en `@OneToMany`/`@OneToOne`/`@ManyToMany`) — indica el nombre del atributo en el lado propietario; el lado que tiene `mappedBy` no mantiene la FK.
 - `cascade` (ej.: `cascade = CascadeType.PERSIST`) — controla qué operaciones (PERSIST, MERGE, REMOVE, REFRESH, DETACH, ALL) se propagan a las entidades relacionadas.
+  
+  Descripción de las operaciones de cascade:
+  - `PERSIST` — Al persistir (guardar) la entidad propietaria, también se persistirán las entidades relacionadas que estén en estado transitorio. Útil para insertar un grafo completo de objetos sin llamar a `persist` en cada uno. Nota: si la entidad relacionada ya existe en BD y está detached/managed, se debe tener cuidado para no crear duplicados.
+  - `MERGE` — Fusiona el estado de una entidad (normalmente detached) en el contexto de persistencia; devuelve una instancia managed con los cambios aplicados. No modifica la instancia original si ésta está detached: el `EntityManager` crea o localiza una entidad managed y copia el estado. Usar `merge` para reattach entidades fuera del contexto.
+  - `REMOVE` — Marca la entidad (y, si se propaga, las relacionadas) para eliminación; la eliminación se realiza en el `flush`/`commit`. Solo funciona sobre entidades managed; si una entidad está detached primero debe reattach o ser recuperada antes de eliminarla.
+  - `REFRESH` — Sobrescribe el estado actual de la entidad con los datos actuales de la base de datos. Descarta los cambios no sincronizados en memoria para esa entidad. Si la fila ha sido borrada en BD, `refresh` puede lanzar una excepción (`EntityNotFoundException` o similar según el proveedor).
+  - `DETACH` — Desasocia la entidad del contexto de persistencia; tras `detach` los cambios en el objeto no se sincronizan con la BD. Propagar `DETACH` permite que al desactivar la entidad propietaria se desactiven también las entidades relacionadas.
+  - `ALL` — Es un atajo que equivale a `{PERSIST, MERGE, REMOVE, REFRESH, DETACH}`; aplica todas las operaciones anteriores. Usar `ALL` es cómodo pero exige comprender el efecto sobre el grafo de entidades (por ejemplo, `REMOVE` en cascada puede borrar filas relacionadas inesperadamente).
+
+  Notas prácticas y casos límite:
+  - `persist` con relaciones: si una entidad relacionada es transitoria, necesita `PERSIST` en cascade o llamadas explícitas a `persist` para evitar errores de clave foránea.
+  - `merge` devuelve la instancia managed; no asumas que la referencia pasada se vuelve managed. Ejemplo: `Persona managed = em.merge(detachedPersona);` — usa `managed` para seguir operando.
+  - `remove` requiere que la entidad sea managed; si tienes un detached entity, recupera la entidad con `find` o `merge` antes de `remove`.
+  - `refresh` descarta cambios en memoria; no usarlo para “confirmar” cambios locales.
+  - Evitar `CascadeType.ALL` si no quieres propagar `REMOVE` o `DETACH` automáticamente; es preferible enumerar solo los tipos necesarios (`PERSIST`, `MERGE`, etc.).
+  
 - `fetch` (LAZY o EAGER) — determina la estrategia de carga de la asociación; `LAZY` retrasa la carga hasta acceso y es recomendado por defecto para colecciones.
 - `orphanRemoval = true` — en colecciones, indica que entidades huérfanas (ya no referenciadas) deben eliminarse automáticamente.
 
@@ -353,6 +385,7 @@ Todo **atributo persistente** se mapea a una columna en una tabla de la base de 
 
 **Hibernate** escoge la mejor correspondencia de tipos de datos en el SGBD para los tipos Java que hayamos usado en las entidades.
 
+:computer: Hoja_02(resto de ejercicios)
 
 ## 7. Clases persistentes
 Se denomina **clase persistente** a una clase Java cuyo estado puede guardarse/recuperarse de la base de datos por el proveedor de persistencia (Hibernate). Se marca típicamente con `@Entity` (o con un <class> en HBM).
@@ -364,12 +397,14 @@ Se denomina **clase persistente** a una clase Java cuyo estado puede guardarse/r
 - No declarar la clase ni los métodos importantes como `final` (Hibernate puede crear proxies que extienden la clase).
 - `equals` / `hashCode`: implementar basándolos en la PK cuando ésta ya está asignada; usar `instanceof` (no `getClass()`) para soportar proxies y evitar usar campos mutables.
 - Evitar lógica pesada en getters, `toString()`, `equals()` o `hashCode()` (pueden disparar loads perezosos o consultas inesperadas).
-- Preferir `LAZY` en colecciones y controlar la carga con `JOIN FETCH` o `EntityGraph` cuando necesites datos relacionados.
+- Preferir `LAZY` en colecciones y controlar la carga con `JOIN FETCH` cuando necesites datos relacionados.
 - Controlar explícitamente `cascade` (no usar `CascadeType.ALL` sin entender el impacto) y usar `orphanRemoval` sólo cuando corresponda.
 - Para capas de presentación o API, usar DTOs en lugar de exponer entidades gestionadas directamente.
 
 ## 8. Sesiones; estados de un objeto
+
 Hibernate nos ha permitido realizar la correspondencia ORM para clases de Java y para las relaciones entre ellas. Nos permite crear objetos transitorios que se han almacenado en la BD como objetos persistentes.
+
 La clase para la que establecemos una correspondencia mediante Hibernate se llama clase persistente y podemos crear objetos persistentes instanciando la clase.
 
 **Ciclo de vida de los objetos persistentes**:
@@ -455,7 +490,6 @@ try (Session session = sessionFactory.openSession()) {
   tx.commit();
 }
 ```
-Conceptos: cascada (cascade) para persistir entidades relacionadas, `orphanRemoval`, `fetch` strategies para evitar N+1.
 
 ### Operaciones básicas con JPA con EntityManager
 
@@ -499,6 +533,7 @@ try {
 
 ## 10. Consultas: HQL/JPQL
 
+### Consultas HQL
 La interfaz Query permite hacer consultas **HQL(Hibernate Query Language)** usando la API de Hibernate.
 Vamos a ver como se puede obtener una sentencia de **Query** a partir de una instancia de **Session** mediante el método `createQuery(String consulta)` devuelve una instancia de la interfaz `org.hibernate.query.Query`
 
@@ -513,19 +548,204 @@ try (Session session = sessionFactory.openSession()) {
   query.setParameter("edad", 18);
   List<Persona> lista = query.getResultList();
 // una consulta únicamente devuelve cero o un resultado uniqueResult()
-
+  Query<Persona> query2 = session.createQuery("from Persona p where p.id > :id", Persona.class);
+  query2.setParameter("id", 1L);
+  Persona persona = query2.uniqueResult();
 }
 ```
+### Consultas JPQL
+JPQL nos permite hacer consultas en base a muchos criterios. También permite obtener más de un valor por consulta
+La consulta JPQL más básica tiene la siguiente estructura:
+```java
+SELECT alias FROM NombreEntidad alias WHERE condición
+```
+Estas otras consultas son equivalentes a la anterior( aunque por claridad es mejor usar la anterior)
+```java
+FROM NombreEntidad alias WHERE condición
+FROM NombreEntidad
+```
+En JPA tenemos dos interfaces para crear consultas. Son **Query** y **TypedQuery** del paquete `javax.persistence`
+Podemos crear una consulta con el método `createQuery` del `EntityManager`.
+```java
+String jpql=" Select p From Propietario p";
+Query query=em.createQuery(jpql);
+List<Propietario> listaPropietarios=query.getResultList();
+```
+Como se puede ver, para las consultas que devuelven un conjunto de datos usaremos el método `getResultList()`
 
+El método devuelve un `List`. Esa última instrucción queda marcada con un **warning** indicando que se deberá chequear que lo devuelto por `getResultList`  debería comprobarse que es una lista de propietarios. Si queremos quitar el warning lo podemos usar la anotación `@SuppressWarnings(“unchecked”)`
 
-
-SQL nativo (usar cuando sea necesario):
+Además de otras ventajas, el uso de `TypedQuery` en lugar de `Query` evita que se produzcan los warnings por no chequear el tipo de resultado.
+En la construcción de una `TypedQuery` ya se incluye el tipo de dato base de la lista que devuelve `getResultList`. 
 
 ```java
-List<Object[]> filas = session.createNativeQuery("SELECT id, nombre FROM persona WHERE edad > :edad")
-    .setParameter("edad", 18)
-    .getResultList();
+String jpql=" Select p From Propietario p";
+TypedQuery<Propietario> typedQuery=em.createQuery(jpql, Propietario.class);
+List<Propietario> listaPropietarios=typedQuery.getResultList();
 ```
+Si una consulta devuelve un solo resultado, tendremos entonces que llamar a `getSingleResult()`. 
+```java
+String jpql=" Select p From Propietario p Where p.id=:id";
+TypedQuery<Propietario> typedQuery=em.createQuery(jpql, Propietario.class);
+typedQuery.setParameter("id", 1L);
+Propietario propietario=typedQuery.getSingleResult();
+```
+#### Select en JPQL
+Las palabras **SELECT** y **FROM** tienen el mismo significado que en el lenguaje SQL. Además, la **p** será un alias.
+
+```java
+String jpql=" Select p.nombre,p.edad From Propietario p";
+```
+
+**Filtrar los resultados**
+Para filtrar los resultados de una consulta JPQL se utiliza la cláusula **WHERE** y operadores relacionales, lógicos(**AND**, **OR**, **NOT**) y otros como **IN**, **BETWEEN**, **LIKE**
+
+**Ordenar los resultados**
+Para ordenar los resultados de una consulta JPQL se utiliza la cláusula **ORDER BY** seguida del nombre del atributo por el que se quiere ordenar y la palabra clave **ASC** o **DESC** para indicar si el orden es ascendente o descendente.
+
+```java
+String jpql=" Select p From Propietario p WHERE p.edad > :edad ORDER BY p.nombre ASC";
+```
+**Uso de parámetros en consultas**
+Los parámetros en las consultas JPQL se pueden definir de dos formas:
+- Parámetros nombrados: se indican con dos puntos seguidos del nombre del parámetro.
+- Parámetros posicionales: se usan por indice.
+
+```java
+// EJEMPLO: parámetros nombrados en JPQL
+String jpql=" Select p From Propietario p WHERE p.edad > :edad AND p.nombre LIKE :nombre";
+TypedQuery<Propietario> typedQuery=em.createQuery(jpql, Propietario.class);
+typedQuery.setParameter("edad", 18);
+typedQuery.setParameter("nombre", "A%");
+List<Propietario> listaPropietarios=typedQuery.getResultList();
+```
+
+```java
+// EJEMPLO: parámetros posicionales / por índice en JPQL
+// En JPQL se usan ?1, ?2, ... y se asignan con setParameter(1, valor), setParameter(2, valor)
+String jpqlIdx = "SELECT p FROM Propietario p WHERE p.edad > ?1 AND p.nombre LIKE ?2";
+TypedQuery<Propietario> qIdx = em.createQuery(jpqlIdx, Propietario.class);
+qIdx.setParameter(1, 18);       // posición 1
+qIdx.setParameter(2, "A%");    // posición 2
+List<Propietario> listaIdx = qIdx.getResultList();
+```
+**Agrupaciones y funciones de agregado**
+JPQL soporta las funciones de agregado comunes como **COUNT**, **SUM**, **AVG**, **MIN**, **MAX** y la cláusula **GROUP BY** para agrupar resultados.
+
+```java
+String jpql=" Select p.edad, COUNT(p) From Propietario p GROUP BY p.edad HAVING COUNT(p) > :minimo";
+TypedQuery<Object[]> typedQuery=em.createQuery(jpql, Object[].class);
+typedQuery.setParameter("minimo", 5L);
+List<Object[]> resultados=typedQuery.getResultList();
+for (Object[] fila : resultados) {
+  Integer edad = (Integer) fila[0];
+  Long cuenta = (Long) fila[1];
+  System.out.println("Edad: " + edad + ", Cuenta: " + cuenta);
+}
+```
+### Joins en JPQL
+JPQL soporta **JOINs** para navegar y filtrar en asociaciones entre entidades.
+JPQL permite realizar los mismos JOIN que en SQL (**JOIN**, **INNER JOIN**, **LEFT JOIN**, **RIGHT JOIN**).
+
+**JOIN implícito**
+El desarrollador no especifica ninguna combinación. Si en las entidades hay asociaciones JPA, crea automáticamente un JOIN implícito
+```java
+//obtener(sin repetir)propietarios de coches
+String jpql=" Select DISTINCT c.propietario From Coche c";
+TypedQuery<Propietario> typedQuery=em.createQuery(jpql, Propietario.class);
+List<Propietario> listaPropietarios=typedQuery.getResultList();
+```
+**JOIN explícito**
+```java
+//obtener propietarios de coches de una marca concreta
+String jpql=" Select p From Propietario p JOIN p.coches c WHERE c.marca = :marca";
+TypedQuery<Propietario> typedQuery=em.createQuery(jpql, Propietario.class);
+typedQuery.setParameter("marca", "Toyota");
+List<Propietario> listaPropietarios=typedQuery.getResultList();
+```
+**JOIN Fetch**
+```java
+// Para obtener los propietarios junto con todos sus coches (evita N+1)
+String jpqlFetch = "Select DISTINCT p From Propietario p JOIN FETCH p.coches WHERE p.edad > :edad";
+TypedQuery<Propietario> qFetch = em.createQuery(jpqlFetch, Propietario.class);
+qFetch.setParameter("edad", 18);
+List<Propietario> listaPropietarios = qFetch.getResultList();
+
+// Recorrer la lista de propietarios y obtener los coches de cada uno
+for (Propietario propietario : listaPropietarios) {
+  // suponiendo que la relación en Propietario se llama 'coches' y tiene getter getCoches()
+  Collection<Coche> coches = propietario.getCoches();
+  for (Coche coche : coches) {
+    // ejemplo: procesar o imprimir información del coche
+    System.out.println("Propietario: " + propietario.getNombre() + " - Coche: " + coche.getMarca() + " " + coche.getModelo());
+  }
+}
+
+```
+### Consultas de actualización
+
+#### UPDATE
+```java
+String jpqlUpdate = "UPDATE Propietario p SET p.edad = p.edad + 1 WHERE p.edad < :edadLimite";
+Query queryUpdate = em.createQuery(jpqlUpdate);
+queryUpdate.setParameter("edadLimite", 18);
+int filasAfectadas = queryUpdate.executeUpdate();
+System.out.println("Filas actualizadas: " + filasAfectadas);
+```
+
+#### DELETE
+```java
+String jpqlDelete = "DELETE FROM Propietario p WHERE p.edad > :edadLimite";
+Query queryDelete = em.createQuery(jpqlDelete);
+queryDelete.setParameter("edadLimite", 100);
+int filasEliminadas = queryDelete.executeUpdate();
+System.out.println("Filas eliminadas: " + filasEliminadas);
+```
+
+### Named Queries
+Para evitar consultas repetidas en distintas partes del código podemos usar **NamedQueries**. Son predefinidas usando la notación `@NamedQuery` o `@NamedQueries` en la definición de la entidad.
+
+Este comportamiento estático las hace mas eficientes y por lo tanto ofrecen un mejor rendimiento. El alcance es el contexto de persistencia actual, por lo tanto, **el nombre de cada query será único bajo el mismo contexto de persistencia**
+
+```java
+@Entity
+@Table(name = "propietarios")
+@NamedQueries({
+  @NamedQuery(
+    name = "Propietario.findByEdad",
+    query = "SELECT p FROM Propietario p WHERE p.edad > :edad"
+  ),
+  @NamedQuery(
+    name = "Propietario.findAll",
+    query = "SELECT p FROM Propietario p"
+  )
+})
+```
+
+Uso de NamedQuery:
+
+```java
+TypedQuery<Propietario> query = em.createNamedQuery("Propietario
+.findByEdad", Propietario.class);
+query.setParameter("edad", 18);
+List<Propietario> resultados = query.getResultList();
+```
+
+### Funciones en consultas JPQL
+JPQL soporta varias funciones integradas que se pueden usar en las consultas para manipular datos. Algunas de las funciones más comunes son:
+ 
+| Tipo                    | Función                                                             |
+|-------------------------|---------------------------------------------------------------------|
+| De fecha/hora actual    | current_date(), current_time(), current_timestamp()                 |
+| De extracción de fecha  | day(fecha), month(fecha), year(fecha)                               |
+| De extracción de tiempo | hour(time), minute(time), second(time)                              |
+| De String               | substring(), trim(), lower(), upper(), length(), locate(), concat() |
+| Conversión a string     | str(valor)                                                          |
+| De agregación o resumen | count(..), avg(..), sum(..), max(..), min(..)                       |
+| Sobre colecciones       | SIZE(coleccion), INDEX(coleccion)                                   |
+
+> Nota: las funciones y la sintaxis pueden variar ligeramente según la implementación JPA/Hibernate y la versión; usa las funciones estándar de JPQL cuando sea posible para mantener portabilidad.
+
 
 Seguridad frente a inyección SQL:
 - Nunca concatenar valores de entrada directamente en la cadena de consulta.
@@ -550,183 +770,32 @@ try (Session session = sessionFactory.openSession()) {
 }
 ```
 
-Transacciones declarativas (Spring): usar `@Transactional` sobre métodos/servicios; Spring gestiona commit/rollback automáticamente.
+Transacciones con JPA (EntityManager) usando Hibernate como proveedor
 
+```java
+// Suponiendo un persistence-unit llamado "miPU" en persistence.xml
+EntityManagerFactory emf = Persistence.createEntityManagerFactory("miPU");
+EntityManager em = emf.createEntityManager();
+EntityTransaction tx = null;
+try {
+  tx = em.getTransaction();
+  tx.begin();
+  //operaciones
+  tx.commit();
+} catch (RuntimeException e) {
+  if (tx != null && tx.isActive()) tx.rollback();
+  throw e;
+} finally {
+  em.close();
+  emf.close();
+}
+```
 Buenas prácticas:
 - Acortar la duración de las transacciones.
 - Evitar operaciones de I/O pesadas dentro de la transacción.
 - Manejar correctamente el rollback en excepciones recuperables y no recuperables.
 
-## 12. Desarrollo de programas que utilizan ORM — ejemplo práctico mínimo
-
-Estructura sugerida (Maven):
-
-- `src/main/java/...` clases de entidad, DAOs o servicios.
-- `src/main/resources/hibernate.cfg.xml` o `persistence.xml`.
-
-Ejemplo rápido de servicio CRUD:
-
-```java
-public class PersonaService {
-  private final SessionFactory sessionFactory;
-
-  public PersonaService(SessionFactory sessionFactory) {
-    this.sessionFactory = sessionFactory;
-  }
-
-  public Persona crear(Persona p) {
-    try (Session s = sessionFactory.openSession()) {
-      Transaction tx = s.beginTransaction();
-      s.persist(p);
-      tx.commit();
-      return p;
-    }
-  }
-
-  public Persona buscar(long id) {
-    try (Session s = sessionFactory.openSession()) {
-      return s.get(Persona.class, id);
-    }
-  }
-
-  public List<Persona> buscarMayoresDe(int edad) {
-    try (Session s = sessionFactory.openSession()) {
-      return s.createQuery("from Persona p where p.edad > :edad", Persona.class)
-          .setParameter("edad", edad)
-          .getResultList();
-    }
-  }
-}
-```
-
-## 12.1 Ejemplos comparativos: Hibernate nativo vs JPA (persistence.xml)
-
-Para aclarar la diferencia y ofrecer un recorrido completo, a continuación verás dos caminos paralelos:
-
-- A) Hibernate nativo: `hibernate.cfg.xml` + `SessionFactory` / `Session` (ya mostrado arriba y usado en el proyecto de ejemplo `Main`).
-- B) JPA estándar: `persistence.xml` + `EntityManagerFactory` / `EntityManager` (portable entre implementaciones).
-
-1) Configuración — archivos de ejemplo
-
-- Hibernate nativo (ya en el tema): `src/main/resources/hibernate.cfg.xml`.
-
-- JPA (`persistence.xml`) — crear `src/main/resources/META-INF/persistence.xml` con este contenido:
-
-```xml
-<persistence xmlns="https://jakarta.ee/xml/ns/persistence"
-             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-             xsi:schemaLocation="https://jakarta.ee/xml/ns/persistence https://jakarta.ee/xml/ns/persistence/persistence_3_0.xsd"
-             version="3.0">
-  <persistence-unit name="miPU" transaction-type="RESOURCE_LOCAL">
-    <provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
-    <!-- Añadir una entrada <class> por cada entidad del modelo, por ejemplo:
-      <class>com.example.model.Persona</class>
-      <class>com.example.model.Direccion</class>
-    -->
-    <properties>
-      <property name="jakarta.persistence.jdbc.driver" value="org.h2.Driver"/>
-      <property name="jakarta.persistence.jdbc.url" value="jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1"/>
-      <property name="jakarta.persistence.jdbc.user" value="sa"/>
-      <property name="jakarta.persistence.jdbc.password" value=""/>
-      <property name="hibernate.dialect" value="org.hibernate.dialect.H2Dialect"/>
-      <property name="hibernate.hbm2ddl.auto" value="create-drop"/>
-      <property name="hibernate.show_sql" value="true"/>
-    </properties>
-  </persistence-unit>
-</persistence>
-```
-
-2) Inicio / código de arranque
-
-- Hibernate nativo (ejemplo ya incluido en el proyecto - `Main`):
-
-```java
-Configuration cfg = new Configuration().configure();
-cfg.addAnnotatedClass(Persona.class);
-SessionFactory sf = cfg.buildSessionFactory();
-try (Session session = sf.openSession()) { ... }
-```
-
-- JPA (nuevo ejemplo `MainJPA`):
-
-```java
-EntityManagerFactory emf = Persistence.createEntityManagerFactory("miPU");
-EntityManager em = emf.createEntityManager();
-em.getTransaction().begin();
-Persona p = new Persona("Ana",28);
-em.persist(p);
-em.getTransaction().commit();
-em.close();
-emf.close();
-```
-
-3) Pros/cons y recomendaciones
-
-- Usar Hibernate nativo cuando necesitas características específicas de Hibernate que no están cubiertas por JPA, o para aprender internals(cómo funciona Hibernate por dentro).
-
-  "Aprender internals" significa estudiar y comprender los mecanismos internos del framework (no sólo su API pública). Ejemplos prácticos: cómo se construyen las sentencias SQL desde HQL/JPQL, cómo funcionan el flush y el dirty checking, el ciclo de vida de Session/SessionFactory, estrategias de caché (primer/segundo nivel), generación de DDL y el papel de los dialectos. Conocer estos detalles ayuda a diagnosticar comportamientos inesperados, optimizar rendimiento y, si hace falta, extender o personalizar partes de Hibernate.
-- Usar JPA (`persistence.xml`) cuando quieras portabilidad y código contra la especificación estándar (recomendado en proyectos modernos). Con Spring Boot normalmente no necesitarás ni `persistence.xml`.
-
-4) Cómo ejecutar ambos ejemplos en el proyecto de ejemplo
-
-- Hibernate nativo: ya existe `Main` en `src/main/java/com/example/Main.java`. Ejecuta `mvn exec:java -Dexec.mainClass="com.example.Main"`.
-- JPA: después de añadir `src/main/resources/META-INF/persistence.xml` y `src/main/java/com/example/MainJPA.java` (se crearán en el proyecto de ejemplo), ejecuta `mvn exec:java -Dexec.mainClass="com.example.MainJPA"`.
-
-Con esto tienes en el mismo repositorio dos rutas para ver la configuración, el mapeo y la ejecución completa: una con Hibernate nativo y otra con JPA (`persistence.xml`).
-
-## 13. Relación con los criterios de evaluación (a–g)
-
-a) Se ha instalado la herramienta ORM.
-- Evidencia: `pom.xml` con dependencias de Hibernate y driver JDBC.
-
-b) Se ha configurado la herramienta ORM.
-- Evidencia: `hibernate.cfg.xml` o `persistence.xml` con `connection.*` y `dialect`.
-
-c) Se han definido configuraciones de mapeo.
-- Evidencia: clases anotadas con `@Entity` o ficheros `.hbm.xml` en `src/main/resources`.
-
-d) Se han aplicado mecanismos de persistencia a los objetos.
-- Evidencia: uso de `Session.persist`, `merge`, `remove`, `get`.
-
-e) Se han desarrollado aplicaciones que modifican y recuperan objetos persistentes.
-- Evidencia: servicios/DAOs con operaciones CRUD y pruebas manuales o unitarias.
-
-f) Se han desarrollado aplicaciones que realizan consultas usando SQL, implementando prácticas de seguridad para prevenir inyecciones.
-- Evidencia: ejemplos con parámetros (`setParameter`), Criteria API y recomendaciones de seguridad.
-
-g) Se han gestionado las transacciones.
-- Evidencia: ejemplos de transacciones programáticas y mención del enfoque declarativo (`@Transactional`).
-
-## 14. Cómo probar / actividad práctica propuesta
-
-1) Crear un proyecto Maven sencillo con las dependencias anteriores.
-2) Configurar `hibernate.cfg.xml` apuntando a una BD de pruebas (por ejemplo MySQL o H2 en memoria).
-3) Crear entidades `Persona`, `Direccion`, `Telefono` con anotaciones.
-4) Escribir una pequeña clase `Main` o tests JUnit que:
-   - Inserten varias personas (persist).
-   - Realicen consultas HQL y Criteria que devuelvan resultados filtrados.
-   - Actualicen y borren registros dentro de transacciones con commit/rollback.
-   - Prueben consultas con parámetros y verifiquen que no es posible inyectar SQL mediante concatenación.
-
-Comandos de ejemplo (PowerShell) para crear y ejecutar un proyecto Maven local:
-
-```powershell
-# Compilar
-mvn -e -DskipTests=false clean package
-# Ejecutar (si hay una clase Main empaquetada)
-java -jar target/mi-aplicacion.jar
-```
-
-Si se usa H2 en memoria para pruebas, la configuración es rápida y no requiere BD externa.
-
-## 15. Buenas prácticas y rendimiento
-
-- Usar `batch_size` y `jdbc.batch_size` para inserciones masivas.
-- Revisar y ajustar estrategias de fetch (`LAZY` vs `EAGER`).
-- Monitorizar consultas generadas (`hibernate.show_sql` y herramientas de perfilado).
-- Usar caché de segundo nivel cuando sea pertinente y coherente.
-
-## 16. Conclusión y referencias
+## 12. Conclusión y referencias
 
 Hibernate es una herramienta madura y potente para mapear modelos OO a bases de datos relacionales. Conocer su configuración, mapeos (XML y anotaciones), gestión de sesiones y transacciones, y técnicas para evitar inyección SQL permite desarrollar aplicaciones robustas y seguras.
 
