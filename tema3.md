@@ -154,6 +154,7 @@ Configuración JPA con `persistence.xml`
     <!-- Añadir una entrada <class> por cada entidad del modelo, por ejemplo:
       <class>com.ejemplo.model.Persona</class>
       <class>com.ejemplo.model.Direccion</class>
+
     -->
     <properties>
       <property name="jakarta.persistence.jdbc.driver" value="org.mariadb.jdbc.Driver"/>
@@ -368,6 +369,22 @@ Se denomina **clase persistente** a una clase Java cuyo estado puede guardarse/r
 - Para capas de presentación o API, usar DTOs en lugar de exponer entidades gestionadas directamente.
 
 ## 8. Sesiones; estados de un objeto
+Hibernate nos ha permitido realizar la correspondencia ORM para clases de Java y para las relaciones entre ellas. Nos permite crear objetos transitorios que se han almacenado en la BD como objetos persistentes.
+La clase para la que establecemos una correspondencia mediante Hibernate se llama clase persistente y podemos crear objetos persistentes instanciando la clase.
+
+**Ciclo de vida de los objetos persistentes**:
+
+![estados](img/estados.png)
+
+Este ciclo de vida muestra los estados en los que puede estar los objetos persistentes, las operaciones que permiten recuperarlos, modificarlos y grabar de nuevo estas modificaciones en la BD.
+Una sesión (interfaz `org.hibernate.Session`) es esencial en Hibernate porque se construye sobre una conexión a la base de datos.
+
+Una **sesión**, junto con un gestor de entidades asociado, constituye un contexto de persistencia. El gestor de entidades (interfaz `javax.persistence.EntityManager`) lleva el control de los cambios que se realizan sobre objetos persistentes.
+La interfaz `Session` es de la `API especifica de Hibernate`.
+
+Para garantizar la portabilidad y compatibilidad con otros sistemas JPA, es preferible utilizar la interfaz `EntityManager` pertenece a la de JPA. Es posible obtener una `EntityManager` a partir de una `Session` y al revés porque hay un puente entre ambas.
+
+Los cambios que hacemos sobre los objetos quedan reflejados en la BD porque están asociados a un contexto de persistencia.
 
 Estados de una instancia:
 - Transient (transitorio): objeto nuevo, no asociado a sesión y no existe en BD.
@@ -381,20 +398,24 @@ Creación típica de `SessionFactory` (Hibernate nativo):
 
 ```java
 import org.hibernate.SessionFactory;
-import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.cfg.Configuration;
+import org.hibernate.Session;
 
 Configuration configuration = new Configuration().configure(); // lee hibernate.cfg.xml
-StandardServiceRegistryBuilder builder = new StandardServiceRegistryBuilder()
-    .applySettings(configuration.getProperties());
-SessionFactory sessionFactory = configuration.buildSessionFactory(builder.build());
+SessionFactory sessionFactory = configuration.buildSessionFactory();
+Session session = sessionFactory.openSession();
+```
+```java
+// Ejemplo mínimo de uso de JPA con EntityManager
+// (suponiendo persistence.xml con persistence-unit "miPU")
+EntityManagerFactory emf = Persistence.createEntityManagerFactory("miPU");
+EntityManager em = emf.createEntityManager();
 ```
 
 ## 9. Carga, almacenamiento y modificación de objetos (CRUD)
 
-Operaciones básicas con `Session`:
-
-- Crear / persistir:
+### Operaciones básicas con `Session`:
+- **Crear / persistir**:
 
 ```java
 try (Session session = sessionFactory.openSession()) {
@@ -406,15 +427,14 @@ try (Session session = sessionFactory.openSession()) {
 }
 ```
 
-- Leer:
+- **Leer**:
 
 ```java
 try (Session session = sessionFactory.openSession()) {
   Persona p = session.get(Persona.class, 1L); // devuelve null si no existe
 }
 ```
-
-- Actualizar:
+- **Actualizar**:
 
 ```java
 try (Session session = sessionFactory.openSession()) {
@@ -425,18 +445,7 @@ try (Session session = sessionFactory.openSession()) {
 }
 ```
 
-- Modo explícito (merge) para objetos detached:
-
-```java
-Persona detached = // obtenido anteriormente y fuera de sesión
-try (Session session = sessionFactory.openSession()) {
-  Transaction tx = session.beginTransaction();
-  Persona managed = (Persona) session.merge(detached);
-  tx.commit();
-}
-```
-
-- Borrar:
+- **Borrar**:
 
 ```java
 try (Session session = sessionFactory.openSession()) {
@@ -446,30 +455,69 @@ try (Session session = sessionFactory.openSession()) {
   tx.commit();
 }
 ```
-
 Conceptos: cascada (cascade) para persistir entidades relacionadas, `orphanRemoval`, `fetch` strategies para evitar N+1.
 
-## 10. Consultas: HQL/JPQL, Criteria API y SQL nativo
-
-HQL (Hibernate Query Language) / JPQL permiten consultar usando nombres de entidades y propiedades:
+### Operaciones básicas con JPA con EntityManager
 
 ```java
-try (Session session = sessionFactory.openSession()) {
-  List<Persona> lista = session.createQuery("from Persona p where p.edad > :edad", Persona.class)
-      .setParameter("edad", 18)
-      .getResultList();
+// Ejemplo mínimo de uso de JPA con EntityManager
+// (suponiendo persistence.xml con persistence-unit "miPU" y entidad Persona)
+EntityManagerFactory emf = Persistence.createEntityManagerFactory("miPU");
+EntityManager em = emf.createEntityManager();
+try {
+  // INSERT (persist)
+  em.getTransaction().begin();
+  Persona nuevo = new Persona();
+  nuevo.setNombre("Luis");
+  nuevo.setEdad(35);
+  em.persist(nuevo);
+  em.getTransaction().commit();
+
+  // READ (find)
+  Persona encontrado = em.find(Persona.class, nuevo.getId());
+
+  // UPDATE (merge) — útil para objetos detached
+  em.getTransaction().begin();
+  if (encontrado != null) {
+    encontrado.setEdad(36);
+    em.merge(encontrado);
+  }
+  em.getTransaction().commit();
+
+  // DELETE (remove)
+  em.getTransaction().begin();
+  if (encontrado != null) {
+    em.remove(encontrado);
+  }
+  em.getTransaction().commit();
+
+} finally {
+  em.close();
+  emf.close();
 }
 ```
 
-Criteria API (tipo-safe):
+## 10. Consultas: HQL/JPQL
+
+La interfaz Query permite hacer consultas **HQL(Hibernate Query Language)** usando la API de Hibernate.
+Vamos a ver como se puede obtener una sentencia de **Query** a partir de una instancia de **Session** mediante el método `createQuery(String consulta)` devuelve una instancia de la interfaz `org.hibernate.query.Query`
+
+Una Query puede tener parámetros que se pueden identificar por nombre o por posición.
 
 ```java
-CriteriaBuilder cb = session.getCriteriaBuilder();
-CriteriaQuery<Persona> cq = cb.createQuery(Persona.class);
-Root<Persona> root = cq.from(Persona.class);
-cq.select(root).where(cb.gt(root.get("edad"), 18));
-List<Persona> res = session.createQuery(cq).getResultList();
+import org.hibernate.query.Query;
+
+// lista de objetos getResultList()
+try (Session session = sessionFactory.openSession()) {
+  Query<Persona> query = session.createQuery("from Persona p where p.edad > :edad", Persona.class);
+  query.setParameter("edad", 18);
+  List<Persona> lista = query.getResultList();
+// una consulta únicamente devuelve cero o un resultado uniqueResult()
+
+}
 ```
+
+
 
 SQL nativo (usar cuando sea necesario):
 
