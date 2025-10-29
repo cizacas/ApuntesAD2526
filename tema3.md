@@ -77,6 +77,8 @@ En este tema nos centramos en `Hibernate` (y en `JPA` cuando sea relevante).
     * La API para realizar operaciones CRUD: javax.persistence.EntityManager
     * Lenguaje para realizar consultas: JPQL
 
+:computer: Práctica guiada-Primer Proyecto Hibernate
+
 ## 4. Instalación de una herramienta ORM. Configuración.
 
 Ejemplo mínimo (Maven): añadir dependencias en `pom.xml` (Hibernate + driver JDBC):
@@ -141,6 +143,7 @@ Configuración clásica Nativa con `hibernate.cfg.xml` (ubicación típica: `src
 Configuración para proyectos modernos con JPA se suele usar `persistence.xml` o configuración a través de Spring Boot.
 
 Configuración JPA con `persistence.xml`
+
 ```xml
 <persistence xmlns="https://jakarta.ee/xml/ns/persistence"
              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -164,22 +167,21 @@ Configuración JPA con `persistence.xml`
   </persistence-unit>
 </persistence>
 ```
-Observaciones:
+
+**Observaciones**:
 - El dialecto (`hibernate.dialect`) debe coincidir con el SGBD usado (MySQL, MariaDB, PostgreSQL, Oracle, SQL Server, H2, etc.). Es importante para que Hibernate genere SQL compatible.
-`hibernate.hbm2ddl.auto` controla la verificación y/o la generación automática del esquema de la base de datos a partir de los mapeos. Valores habituales:
+- `hibernate.hbm2ddl.auto` controla la verificación y/o la generación automática del esquema de la base de datos a partir de los mapeos. Valores habituales:
+  - `none` (o omitir la propiedad): no hace ninguna comprobación ni modificación del esquema.
+  - `validate`: comprueba que las tablas/columnas existen y coinciden con los mapeos; no modifica la base de datos. Recomendado en entornos de producción para detectar discrepancias sin riesgo.
+  - `update`: intenta actualizar el esquema existente aplicando cambios necesarios (crear tablas/columnas nuevas, alterar columnas en algunos casos). No elimina columnas ni siempre realiza alteraciones complejas; puede generar DDL inesperado según el dialecto. Úsalo sólo en desarrollo o con mucha precaución y siempre con copias de seguridad.
+  - `create`: crea el esquema desde cero en el arranque (normalmente elimina/reescribe tablas existentes). Útil para pruebas locales cuando se quiere partir de cero.
+  - `create-drop`: como `create`, pero además elimina el esquema al cerrar la sesión/SessionFactory. Muy útil en suites de tests donde se necesita un esquema limpio por ejecución.
 
-- `none` (o omitir la propiedad): no hace ninguna comprobación ni modificación del esquema.
-- `validate`: comprueba que las tablas/columnas existen y coinciden con los mapeos; no modifica la base de datos. Recomendado en entornos de producción para detectar discrepancias sin riesgo.
-- `update`: intenta actualizar el esquema existente aplicando cambios necesarios (crear tablas/columnas nuevas, alterar columnas en algunos casos). No elimina columnas ni siempre realiza alteraciones complejas; puede generar DDL inesperado según el dialecto. Úsalo sólo en desarrollo o con mucha precaución y siempre con copias de seguridad.
-- `create`: crea el esquema desde cero en el arranque (normalmente elimina/reescribe tablas existentes). Útil para pruebas locales cuando se quiere partir de cero.
-- `create-drop`: como `create`, pero además elimina el esquema al cerrar la sesión/SessionFactory. Muy útil en suites de tests donde se necesita un esquema limpio por ejecución.
-
-Consejos:
+**Consejos**:
 - En producción usa `validate` (o omite la propiedad) y gestiona las migraciones con herramientas dedicadas (Flyway, Liquibase) o scripts SQL controlados.
 - `update` facilita desarrollo pero puede generar cambios indeseados y no cubre todos los casos (ej.: renombrados complejos). No confiar en él para cambios de esquema críticos.
 - `create`/`create-drop` son convenientes para pruebas automatizadas o demos, nunca para datos reales sin respaldos.
 - Si ves errores de DDL (sintaxis) al usar `update` o `create`, revisa el `hibernate.dialect` y la versión del SGBD: un dialecto incorrecto puede producir sentencias incompatibles.
-
 
 ## 5. Estructura de un fichero de mapeo (HBM XML). Elementos y propiedades
 
@@ -272,6 +274,7 @@ public class Persona {
   // getters y setters
 }
 ```
+:computer: Hoja_02 (ejercicio 1)
 
 **Anotaciones comunes (qué hacen):**
 
@@ -321,13 +324,19 @@ public class Alumno {
   // getters y setters
 }
 ``` 
+:computer: Hoja_02 (ejercicio 2)
 
+:pencil: Ejemplos de asociaciones
 
 - Relaciones (anotaciones de asociación):
-  - `@ManyToOne` — muchos → uno; la entidad actual tiene una FK hacia la entidad referenciada. Es el lado propietario de la relación.
-  - `@OneToMany` — uno → muchos; normalmente mapea una colección y suele declararse en el lado inverso con `mappedBy` que apunta al campo propietario.
-  - `@OneToOne` — uno → uno; puede implementarse con una FK única o compartiendo la PK entre tablas; usar `@JoinColumn` para indicar la columna de unión.
-  - `@ManyToMany` — muchos ↔ muchos; se materializa mediante una tabla intermedia (configurable con `@JoinTable`).
+Las entidades pueden estar relacionadas entre ellas.
+A nivel de base de datos las asociaciones se representan mediante claves externas o FOREIGN KEY.
+Con JPA podemos modelarlas estas asociaciones. Pueden ser unidireccionales o bidireccionales:
+
+  - `@ManyToOne` — (muchos → uno); la entidad actual tiene una FK hacia la entidad referenciada. Es el lado propietario de la relación.
+  - `@OneToMany` — (uno → muchos); normalmente mapea una colección y suele declararse en el lado inverso con `mappedBy` que apunta al campo propietario.
+  - `@OneToOne` — (uno → uno); puede implementarse con una FK única o compartiendo la PK entre tablas; usar `@JoinColumn` para indicar la columna de unión.
+  - `@ManyToMany` — (muchos ↔ muchos); se materializa mediante una tabla intermedia (configurable con `@JoinTable`).
 
 - `@JoinColumn(name = "columna_fk")` — especifica la columna de la tabla que almacena la FK para la relación (se usa en el lado propietario).
 - `mappedBy` (atributo en `@OneToMany`/`@OneToOne`/`@ManyToMany`) — indica el nombre del atributo en el lado propietario; el lado que tiene `mappedBy` no mantiene la FK.
