@@ -122,7 +122,7 @@ Configuración clásica Nativa con `hibernate.cfg.xml` (ubicación típica: `src
     <property name="hibernate.connection.url">jdbc:mysql://localhost:3306/mi_bd?useSSL=false</property>
     <property name="hibernate.connection.username">usuario</property>
     <property name="hibernate.connection.password">clave</property>
-    <property name="hibernate.dialect">org.hibernate.dialect.MySQL8Dialect</property>
+    <property name="hibernate.dialect">org.hibernate.dialect.MySQLDialect</property>
     <property name="hibernate.show_sql">true</property>
     <property name="hibernate.hbm2ddl.auto">validate</property>
     <!-- mapping entries (si se usan ficheros .hbm.xml)
@@ -327,6 +327,7 @@ public class Direccion {
   // getters y setters
 }
 ```
+
 ```java
 @Entity
 public class Alumno {
@@ -341,6 +342,7 @@ public class Alumno {
   // getters y setters
 }
 ``` 
+
 :computer: Hoja_02 (ejercicio 2)
 
 :pencil: Ejemplos de asociaciones
