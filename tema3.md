@@ -387,10 +387,11 @@ Todo **atributo persistente** se mapea a una columna en una tabla de la base de 
 
 **Hibernate** escoge la mejor correspondencia de tipos de datos en el SGBD para los tipos Java que hayamos usado en las entidades.
 
+
 :computer: Hoja_02(resto de ejercicios)
 
 ## 7. Clases persistentes
-Se denomina **clase persistente** a una clase Java cuyo estado puede guardarse/recuperarse de la base de datos por el proveedor de persistencia (Hibernate). Se marca típicamente con `@Entity` (o con un <class> en HBM).
+Se denomina **clase persistente** a una clase Java cuyo estado puede guardarse/recuperarse de la base de datos por el proveedor de persistencia (Hibernate). Se marca típicamente con `@Entity` (o con un `<class>` en HBM).
 
 **Recomendaciones:**
 - Tener un constructor sin argumentos (público o protegido): Hibernate lo crea por reflexión.
@@ -402,6 +403,9 @@ Se denomina **clase persistente** a una clase Java cuyo estado puede guardarse/r
 - Preferir `LAZY` en colecciones y controlar la carga con `JOIN FETCH` cuando necesites datos relacionados.
 - Controlar explícitamente `cascade` (no usar `CascadeType.ALL` sin entender el impacto) y usar `orphanRemoval` sólo cuando corresponda.
 - Para capas de presentación o API, usar DTOs en lugar de exponer entidades gestionadas directamente.
+- La serialización de las clases java, es necesario si la clase esta compuesta por (`@IdClass` y `@EmbeddedId`) se va a usar en contextos donde se requiere serialización como en sesiones distribuidas o almacenamiento en caché distribuido. Sin embargo, es una buena práctica que las clases que representan claves compuestas implementen la `interfaz Serializable` porque:
+  - Hibernate lo recomienda para asegurar compatibilidad con todas sus funciones internas
+  - Algunas implementaciones de JPA lo requieren para el correcto funcionamiento de la persistencia y la replicación.
 
 ## 8. Sesiones; estados de un objeto
 
