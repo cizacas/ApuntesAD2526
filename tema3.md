@@ -291,7 +291,7 @@ try {
 }
 ```
 
-:computer: Hoja_02 (ejercicio 1)
+:computer: Hoja02 (ejercicio 1)
 
 **Anotaciones comunes (qué hacen):**
 
@@ -343,7 +343,7 @@ public class Alumno {
 }
 ``` 
 
-:computer: Hoja_02 (ejercicio 2)
+:computer: Hoja02 (ejercicio 2)
 
 :pencil: Ejemplos de asociaciones
 
@@ -387,8 +387,7 @@ Todo **atributo persistente** se mapea a una columna en una tabla de la base de 
 
 **Hibernate** escoge la mejor correspondencia de tipos de datos en el SGBD para los tipos Java que hayamos usado en las entidades.
 
-
-:computer: Hoja_02(resto de ejercicios)
+:computer: Hoja02(resto de ejercicios)
 
 ## 7. Clases persistentes
 Se denomina **clase persistente** a una clase Java cuyo estado puede guardarse/recuperarse de la base de datos por el proveedor de persistencia (Hibernate). Se marca típicamente con `@Entity` (o con un `<class>` en HBM).
@@ -420,7 +419,7 @@ La clase para la que establecemos una correspondencia mediante Hibernate se llam
 Este ciclo de vida muestra los estados en los que puede estar los objetos persistentes, las operaciones que permiten recuperarlos, modificarlos y grabar de nuevo estas modificaciones en la BD.
 Una sesión (interfaz `org.hibernate.Session`) es esencial en Hibernate porque se construye sobre una conexión a la base de datos.
 
-Una **sesión**, junto con un gestor de entidades asociado, constituye un contexto de persistencia. El gestor de entidades (interfaz `javax.persistence.EntityManager`) lleva el control de los cambios que se realizan sobre objetos persistentes.
+Una **sesión**, junto con un gestor de entidades asociado, constituye un contexto de persistencia. El gestor de entidades (interfaz `jakarta.persistence.EntityManager`) lleva el control de los cambios que se realizan sobre objetos persistentes.
 La interfaz `Session` es de la `API especifica de Hibernate`.
 
 Para garantizar la portabilidad y compatibilidad con otros sistemas JPA, es preferible utilizar la interfaz `EntityManager` pertenece a la de JPA. Es posible obtener una `EntityManager` a partir de una `Session` y al revés porque hay un puente entre ambas.
@@ -559,6 +558,9 @@ try (Session session = sessionFactory.openSession()) {
   Persona persona = query2.uniqueResult();
 }
 ```
+
+:computer: Hoja03
+
 ### Consultas JPQL
 JPQL nos permite hacer consultas en base a muchos criterios. También permite obtener más de un valor por consulta
 La consulta JPQL más básica tiene la siguiente estructura:
@@ -758,6 +760,8 @@ Seguridad frente a inyección SQL:
 - Usar parámetros nombrados (`:param`) o posicionales y `setParameter`.
 - Validar y sanear entradas (longitud, formato) en la capa de aplicación.
 - Usar cuentas de BD con privilegios mínimos.
+
+:computer: Hoja04
 
 ## 11. Gestión de transacciones
 
