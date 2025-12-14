@@ -74,7 +74,7 @@ En este tema nos centramos en `Hibernate` (y en `JPA` cuando sea relevante).
 * Usaremos principalmente JPA en nuestras aplicaciones. 
 * Nos proporciona:
     * Utilidades para especificar cómo nuestros objetos se relacionan con la base de datos (a través de anotaciones).
-    * La API para realizar operaciones CRUD: javax.persistence.EntityManager
+    * La API para realizar operaciones CRUD: jakarta.persistence.EntityManager
     * Lenguaje para realizar consultas: JPQL
 
 :computer: Práctica guiada-Primer Proyecto Hibernate
@@ -248,7 +248,7 @@ Ejemplos breves:
 Las anotaciones JPA son el enfoque más usado hoy en día. Ejemplo de clase persistente:
 
 ```java
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.util.Set;
 
 @Entity
@@ -572,7 +572,7 @@ Estas otras consultas son equivalentes a la anterior( aunque por claridad es mej
 FROM NombreEntidad alias WHERE condición
 FROM NombreEntidad
 ```
-En JPA tenemos dos interfaces para crear consultas. Son **Query** y **TypedQuery** del paquete `javax.persistence`
+En JPA tenemos dos interfaces para crear consultas. Son **Query** y **TypedQuery** del paquete `jakarta.persistence`
 Podemos crear una consulta con el método `createQuery` del `EntityManager`.
 ```java
 String jpql=" Select p From Propietario p";
