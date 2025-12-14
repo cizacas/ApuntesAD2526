@@ -812,5 +812,6 @@ Hibernate es una herramienta madura y potente para mapear modelos OO a bases de 
 Referencias rápidas:
 - Documentación oficial Hibernate: https://hibernate.org/
 - JPA specification: https://jakarta.ee/specifications/persistence/
+- Manual de usuario de Hibernate: https://docs.hibernate.org/orm/current/userguide/html_single/
 
 ---
