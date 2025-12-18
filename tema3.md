@@ -553,7 +553,7 @@ try (Session session = sessionFactory.openSession()) {
   query.setParameter("edad", 18);
   List<Persona> lista = query.getResultList();
 // una consulta únicamente devuelve cero o un resultado uniqueResult()
-  Query<Persona> query2 = session.createQuery("from Persona p where p.id > :id", Persona.class);
+  Query<Persona> query2 = session.createQuery("from Persona p where p.id = :id", Persona.class);
   query2.setParameter("id", 1L);
   Persona persona = query2.uniqueResult();
 }
@@ -721,7 +721,7 @@ Este comportamiento estático las hace mas eficientes y por lo tanto ofrecen un 
 @NamedQueries({
   @NamedQuery(
     name = "Propietario.findByEdad",
-    query = "SELECT p FROM Propietario p WHERE p.edad > :edad"
+    query = "SELECT p FROM Propietario p WHERE p.edad = :edad"
   ),
   @NamedQuery(
     name = "Propietario.findAll",
