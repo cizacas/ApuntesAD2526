@@ -53,27 +53,51 @@ Existen varios estándares que definen cómo debe ser la persistencia y gestión
 - **ObjectDB:** Cumple con los estándares ODMG, JPA y JDO, lo que le permite integrarse fácilmente en aplicaciones Java y garantizar portabilidad y compatibilidad con frameworks y herramientas estándar.
 - Otros gestores como db4o, Versant o GemStone/S pueden tener compatibilidad parcial o APIs propias, pero no cumplen todos estos estándares de forma completa.
 
-
 ### Ejemplo de gestores de bases de datos orientadas a objetos
 
 Algunos ejemplos de gestores de bases de datos orientadas a objetos son:
 
 - **ObjectDB**: Un sistema de base de datos orientado a objetos para Java, ampliamente utilizado en aplicaciones Java y JPA.
-  
-	**Cumple con los siguientes estándares:**
-	- **ODMG (Object Data Management Group)**: Proporciona un modelo estándar para bases de datos orientadas a objetos.
-	- **JPA (Java Persistence API)**: Permite la persistencia de objetos Java de forma estándar y portable.
-	- **JDO (Java Data Object)**: Define una interfaz estándar para la persistencia y recuperación de objetos Java.
-
 - **db4o**: Base de datos orientada a objetos para Java y .NET, fácil de integrar en aplicaciones OO.
 - **Versant Object Database**: Utilizada en aplicaciones empresariales que requieren alto rendimiento y modelado complejo de objetos.
 - **GemStone/S**: Base de datos orientada a objetos para Smalltalk y Java, con soporte avanzado para transacciones y persistencia de objetos.
 
 Estos gestores permiten almacenar y gestionar objetos directamente, manteniendo sus relaciones, herencia y métodos asociados.
 
----
+**¿Cuáles de estos gestores son embebidos?**
 
-### ObjectDB: Uso práctico y características
+De los ejemplos mencionados, los siguientes gestores pueden funcionar como bases de datos embebidas (integradas en la propia aplicación, sin necesidad de un servidor independiente):
+
+- **db4o**: Diseñada específicamente para ser embebida en aplicaciones Java y .NET.
+- **ObjectDB**: Puede funcionar tanto en modo servidor como embebido en aplicaciones Java.
+
+Por el contrario, Versant Object Database y GemStone/S suelen funcionar como servidores independientes y no están pensados principalmente para uso embebido.
+
+### Ventajas
+- Persistencia transparente de objetos complejos.
+- Mayor naturalidad en el modelado de datos para aplicaciones OO.
+- Reducción de código de mapeo entre objetos y base de datos.
+- Mejor rendimiento en operaciones sobre estructuras de datos complejas.
+
+### Gestión de la persistencia de objetos
+- Los objetos se almacenan y recuperan directamente desde la base de datos.
+- Se mantiene la identidad y las relaciones entre objetos.
+
+### Interfaz de programación de aplicaciones (API) y OQL
+- APIs específicas permiten manipular objetos en la base de datos desde el lenguaje de programación.
+- OQL (Object Query Language) es un lenguaje de consultas similar a SQL pero orientado a objetos.
+
+### Gestión de transacciones
+- Soporte para transacciones ACID (Atomicidad, Consistencia, Aislamiento, Durabilidad).
+- Permite operaciones seguras y coherentes sobre objetos persistentes.
+
+### Desarrollo de programas que gestionan objetos en bases de datos
+- Los desarrolladores pueden crear, modificar y consultar objetos directamente.
+- Se facilita la integración entre la lógica de negocio y la persistencia de datos.
+
+### **ObjectDB**: Uso práctico y características
+
+computer: Ejemplo
 
 **Introducción a ObjectDB**
 - ObjectDB es una base de datos orientada a objetos para Java, muy utilizada por su alto rendimiento y compatibilidad con los estándares JPA y JDO.
@@ -85,7 +109,6 @@ Estos gestores permiten almacenar y gestionar objetos directamente, manteniendo 
 - Ofrece alto rendimiento en operaciones de persistencia y consulta.
 - Soporta transacciones ACID, consultas JPQL y gestión eficiente de grandes volúmenes de datos.
 - Puede funcionar tanto en modo embebido como en modo servidor.
-
 
 **Instalación y configuración en un proyecto Maven**
 
@@ -121,22 +144,29 @@ For using the new jakarta.persistence packages:
 
 2. **Actualizar el proyecto Maven** para descargar la dependencia.
 
-3. **Configurar el archivo `persistence.xml`** en la carpeta `src/main/resources/META-INF`:Crea el archivo `persistence.xml`y recuerda cambiar el proveedor del servicio de persistencia `provider` a
-`<provider>com.objectdb.jpa.Provider</provider>`  y creamos la base de datos automáticamente al conectarte desde la aplicación java, la crea si no existe. Por ejemplo, la URL: `objectdb://localhost:6136/miBD.odb;create=true`
+3. **Configurar el archivo `persistence.xml`** en la carpeta `src/main/resources/META-INF`:
 
-Finalmente el archivo queda:
+Crea el archivo `persistence.xml` con la información que figura a continuación:
+* Versión 2.1 de persistencia
+* Ahora el proveedor del servicio de persistencia es **objectdb** `provider` a
+`<provider>com.objectdb.jpa.Provider</provider>`  
+* La base de datos automáticamente al conectarte desde la aplicación java, la crea si no existe.
+`<property name="jakarta.persistence.jdbc.url"`  el valor cambia
+  * Si utilizas ObjectDB con servidor. Por ejemplo, la URL: `value="objectdb://localhost:6136/miBD.odb;create=true"`
+  * Si utilizas ObjectDB embebido. Por ejemplo , la URL:  `value="$objectdb/db/miBD.odb"`
+
+Finalmente el archivo queda utilizando **ObjectDB embebido**:
 
 ```xml
 <persistence version="2.1" xmlns="http://xmlns.jcp.org/xml/ns/persistence" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/persistence           http://xmlns.jcp.org/xml/ns/persistence/persistence_2_1.xsd">
   <persistence-unit name="miUnidadPersistencia" transaction-type="RESOURCE_LOCAL">
     <provider>com.objectdb.jpa.Provider</provider>
     <properties>
-      <property name="javax.persistence.jdbc.url" value="objectdb://localhost:6136/miBD.odb;create=true"/>
+      <property name="jakarta.persistence.jdbc.url" value="$objectdb/db/miBD.odb"/>
     </properties>
   </persistence-unit>
 </persistence>
 ```
-
 
 **Modelo de persistencia**
 - Definición de entidades persistentes en Java usando anotaciones JPA.
@@ -171,7 +201,7 @@ public class Direccion {
 ```
 
 **Operaciones básicas**
-En una aplicación que va a usar la **API JPA** se va hacer uso de los interfaces:
+En una aplicación que va a usar la **API JPA** se va a hacer uso de los interfaces:
 
 [conexionesJPA](img/conexionesJPA.jpg)
 * EntityManagerFactory: Es una interface que, entre otras cosas, permite crear instancias de objetos `EntityManager`.
@@ -225,6 +255,7 @@ List<Empleado> empleados = em.createQuery("SELECT e FROM Empleado e", Empleado.c
 Actualización de objetos:
 
 ```java
+Empleado emp=em.find(Empleado.class,1);
 em.getTransaction().begin();
 emp.setEdad(31);
 em.merge(emp);
@@ -234,6 +265,7 @@ em.getTransaction().commit();
 Borrado de objetos:
 
 ```java
+Empleado emp=em.find(Empleado.class,1);
 em.getTransaction().begin();
 em.remove(emp);
 em.getTransaction().commit();
@@ -282,7 +314,25 @@ em.getTransaction().commit();
 
 **Consultas con Criteria API**
 
-La API Criteria permite construir consultas de forma dinámica:
+* La API Criteria permite construir consultas de forma dinámica en tiempo de ejecución mediante el uso de métodos para filtrar, ordenar, etc...
+* No requiere escribir y usar una consulta JPQL.
+* Se parte de una selección de todas las instancias de una entidad para después ir filtrando mediante métodos esas instancias.
+Para realizar con Criteria una consulta de todos los empleados, resultaría complejo ya que tendríamos que hacer:
+
+```java
+CriteriaBuilder cb = em.getCriteriaBuilder();
+CriteriaQuery<Empleado> cq = cb.createQuery(Empleado.class);
+Root<Empleado> root = cq.from(Empleado.class);
+cq.select(root)
+List<Empleado> resultado = em.createQuery(cq).getResultList();
+```
+* *CriteriaBuilder*: Es una clase Factory de CriteriaQuery. Se puede usar el mismo CriteriaBuilder para instanciar varios CriteriaQuery.
+* *CriteriaQuery*: Permite representar el tipo de resultado de la consulta que se va a crear y usar. En el caso anterior una consulta para devolver objetos Empleado. A un CriteriaQuery se le podrán aplicar después varios modificadores. 
+* *CriteriaQuery.from*: Aquí indicamos que entidad estamos consultando. También podríamos usar relaciones JOIN y subconsultas.
+* *CriteriaQuery.select*: Para especificar los objetos o campos de objeto que queremos devolver.
+* *CriteriaQuery.where*: Para establecer las condiciones de filtrado de la consulta.
+
+Ejemplo de obtención de datos de empleados de más de 25 años
 
 ```java
 CriteriaBuilder cb = em.getCriteriaBuilder();
@@ -293,41 +343,31 @@ List<Empleado> resultado = em.createQuery(cq).getResultList();
 ```
 
 **Ventajas de ObjectDB**
-- Alto rendimiento.
+- Alto rendimiento
 - Sencillez de uso.
 - Integración nativa con Java y frameworks estándar.
 
 **Conclusión**
 - ObjectDB es una opción recomendada para la persistencia de objetos en aplicaciones Java, gracias a su compatibilidad con los principales estándares y su facilidad de integración.
 
-**¿Cuáles de estos gestores son embebidos?**
+### Herramientas para trabajar con ObjectDB: ObjectDB Explorer
 
-De los ejemplos mencionados, los siguientes gestores pueden funcionar como bases de datos embebidas (integradas en la propia aplicación, sin necesidad de un servidor independiente):
+**ObjectDB Explorer** es una herramienta gráfica que permite visualizar, consultar y modificar bases de datos ObjectDB (.odb) de forma sencilla y visual.
 
-- **db4o**: Diseñada específicamente para ser embebida en aplicaciones Java y .NET.
-- **ObjectDB**: Puede funcionar tanto en modo servidor como embebido en aplicaciones Java.
+**Características principales:**
+- Permite explorar las entidades y sus relaciones.
+- Ejecutar consultas JPQL de manera interactiva.
+- Editar, añadir o eliminar datos directamente desde la interfaz.
+- Visualizar la estructura de la base de datos y los objetos almacenados.
 
-Por el contrario, Versant Object Database y GemStone/S suelen funcionar como servidores independientes y no están pensados principalmente para uso embebido.
+**¿Cómo obtener y usar ObjectDB Explorer?**
+1. Descarga ObjectDB desde la web oficial: https://www.objectdb.com/download
+2. Descomprime el archivo descargado.
+3. Dentro de la carpeta encontrarás el archivo `explorer.exe` (Windows) o `explorer.sh` (Linux/Mac).
+4. Ejecuta el explorador y abre tu archivo de base de datos `.odb` para comenzar a explorar y modificar los datos.
+5. Manual de referencia https://www.objectdb.com/java/jpa/tool/explorer
 
-### Ventajas
-- Persistencia transparente de objetos complejos.
-- Mayor naturalidad en el modelado de datos para aplicaciones OO.
-- Reducción de código de mapeo entre objetos y base de datos.
-- Mejor rendimiento en operaciones sobre estructuras de datos complejas.
+**Nota:** ObjectDB Explorer no se instala automáticamente con las dependencias de Maven; es una herramienta independiente que debe descargarse aparte.
 
-### Gestión de la persistencia de objetos
-- Los objetos se almacenan y recuperan directamente desde la base de datos.
-- Se mantiene la identidad y las relaciones entre objetos.
-
-### Interfaz de programación de aplicaciones (API) y OQL
-- APIs específicas permiten manipular objetos en la base de datos desde el lenguaje de programación.
-- OQL (Object Query Language) es un lenguaje de consultas similar a SQL pero orientado a objetos.
-
-### Gestión de transacciones
-- Soporte para transacciones ACID (Atomicidad, Consistencia, Aislamiento, Durabilidad).
-- Permite operaciones seguras y coherentes sobre objetos persistentes.
-
-### Desarrollo de programas que gestionan objetos en bases de datos
-- Los desarrolladores pueden crear, modificar y consultar objetos directamente.
-- Se facilita la integración entre la lógica de negocio y la persistencia de datos.
+Esta utilidad es especialmente útil para depuración, pruebas y aprendizaje, ya que permite ver el contenido real de la base de datos y realizar operaciones sin necesidad de programar.
 
