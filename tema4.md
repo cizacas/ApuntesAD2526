@@ -97,7 +97,7 @@ Por el contrario, Versant Object Database y GemStone/S suelen funcionar como ser
 
 ### **ObjectDB**: Uso práctico y características
 
-computer: Ejemplo
+:computer: Ejemplo
 
 **Introducción a ObjectDB**
 - ObjectDB es una base de datos orientada a objetos para Java, muy utilizada por su alto rendimiento y compatibilidad con los estándares JPA y JDO.
@@ -158,7 +158,7 @@ Crea el archivo `persistence.xml` con la información que figura a continuación
 Finalmente el archivo queda utilizando **ObjectDB embebido**:
 
 ```xml
-<persistence version="2.1" xmlns="http://xmlns.jcp.org/xml/ns/persistence" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/persistence           http://xmlns.jcp.org/xml/ns/persistence/persistence_2_1.xsd">
+<persistence version="2.1" xmlns="http://xmlns.jcp.org/xml/ns/persistence" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/persistence/persistence_2_1.xsd">
   <persistence-unit name="miUnidadPersistencia" transaction-type="RESOURCE_LOCAL">
     <provider>com.objectdb.jpa.Provider</provider>
     <properties>
@@ -203,11 +203,11 @@ public class Direccion {
 **Operaciones básicas**
 En una aplicación que va a usar la **API JPA** se va a hacer uso de los interfaces:
 
-[conexionesJPA](img/conexionesJPA.jpg)
-* EntityManagerFactory: Es una interface que, entre otras cosas, permite crear instancias de objetos `EntityManager`.
-* EntityManager: Permite crear un contexto de persistencia, una conexión a una base de datos en la que se pueden persistir los datos.
-* EntityTRansaction: Permite controlar transacciones dentro de un contexto de persistencia.
-* Query: Permite realizar y controlar consultas sobre clases persistentes.
+![conexionesJPA](img/conexionesJPA.jpg)
+* *EntityManagerFactory*: Es una interface que, entre otras cosas, permite crear instancias de objetos `EntityManager`.
+* *EntityManager*: Permite crear un contexto de persistencia, una conexión a una base de datos en la que se pueden persistir los datos.
+* *EntityTRansaction*: Permite controlar transacciones dentro de un contexto de persistencia.
+* *Query*: Permite realizar y controlar consultas sobre clases persistentes.
 
 - Ejemplo de apertura y cierre de conexión (`EntityManager`).
 - Ejemplo de inserción, consulta, actualización y borrado de objetos.
@@ -271,7 +271,6 @@ em.remove(emp);
 em.getTransaction().commit();
 ```
 
-
 **Consultas**
 - Ejemplo de consultas JPQL (Java Persistence Query Language) sobre entidades almacenadas en ObjectDB.
 
@@ -312,6 +311,8 @@ q.executeUpdate();
 em.getTransaction().commit();
 ```
 
+:computer: Hoja01 y Hoja02
+
 **Consultas con Criteria API**
 
 * La API Criteria permite construir consultas de forma dinámica en tiempo de ejecución mediante el uso de métodos para filtrar, ordenar, etc...
@@ -341,6 +342,7 @@ Root<Empleado> root = cq.from(Empleado.class);
 cq.select(root).where(cb.gt(root.get("edad"), 25));
 List<Empleado> resultado = em.createQuery(cq).getResultList();
 ```
+:computer: Hoja03
 
 **Ventajas de ObjectDB**
 - Alto rendimiento
