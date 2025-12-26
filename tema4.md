@@ -53,6 +53,7 @@ Existen varios estándares que definen cómo debe ser la persistencia y gestión
 - **ObjectDB:** Cumple con los estándares ODMG, JPA y JDO, lo que le permite integrarse fácilmente en aplicaciones Java y garantizar portabilidad y compatibilidad con frameworks y herramientas estándar.
 - Otros gestores como db4o, Versant o GemStone/S pueden tener compatibilidad parcial o APIs propias, pero no cumplen todos estos estándares de forma completa.
 
+
 ### Ejemplo de gestores de bases de datos orientadas a objetos
 
 Algunos ejemplos de gestores de bases de datos orientadas a objetos son:
@@ -69,6 +70,235 @@ Algunos ejemplos de gestores de bases de datos orientadas a objetos son:
 - **GemStone/S**: Base de datos orientada a objetos para Smalltalk y Java, con soporte avanzado para transacciones y persistencia de objetos.
 
 Estos gestores permiten almacenar y gestionar objetos directamente, manteniendo sus relaciones, herencia y métodos asociados.
+
+---
+
+### ObjectDB: Uso práctico y características
+
+**Introducción a ObjectDB**
+- ObjectDB es una base de datos orientada a objetos para Java, muy utilizada por su alto rendimiento y compatibilidad con los estándares JPA y JDO.
+
+#### Características de ObjectDB
+
+- Permite almacenar y gestionar objetos Java de forma nativa, sin necesidad de conversión a tablas relacionales.
+- Cumple con los estándares JPA y JDO, facilitando la integración con frameworks y herramientas Java.
+- Ofrece alto rendimiento en operaciones de persistencia y consulta.
+- Soporta transacciones ACID, consultas JPQL y gestión eficiente de grandes volúmenes de datos.
+- Puede funcionar tanto en modo embebido como en modo servidor.
+
+
+**Instalación y configuración en un proyecto Maven**
+
+1. **Añadir la dependencia de ObjectDB en el archivo `pom.xml`:**
+
+En la página de [ObjectDB](https://www.objectdb.com/download)
+
+```xml
+
+For using the new jakarta.persistence packages:
+
+<repositories>
+			...
+	<repository>
+		<id>objectdb</id>
+		<name>ObjectDB Repository</name>
+		<url>https://m2.objectdb.com</url>
+	</repository>
+			...
+</repositories>
+			...
+<dependencies>
+			...
+	<dependency>
+		<groupId>com.objectdb</groupId>
+		<artifactId>objectdb-jk</artifactId>
+		<version>2.9.4</version><!-- Usa la última versión disponible -->
+	</dependency>
+			...
+</dependencies>
+
+```
+
+2. **Actualizar el proyecto Maven** para descargar la dependencia.
+
+3. **Configurar el archivo `persistence.xml`** en la carpeta `src/main/resources/META-INF`:Crea el archivo `persistence.xml`y recuerda cambiar el proveedor del servicio de persistencia `provider` a
+`<provider>com.objectdb.jpa.Provider</provider>`  y creamos la base de datos automáticamente al conectarte desde la aplicación java, la crea si no existe. Por ejemplo, la URL: `objectdb://localhost:6136/miBD.odb;create=true`
+
+Finalmente el archivo queda:
+
+```xml
+<persistence version="2.2" xmlns="http://xmlns.jcp.org/xml/ns/persistence" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/persistence           http://xmlns.jcp.org/xml/ns/persistence/persistence_2_2.xsd">
+  <persistence-unit name="miUnidadPersistencia" transaction-type="RESOURCE_LOCAL">
+    <provider>com.objectdb.jpa.Provider</provider>
+    <properties>
+      <property name="javax.persistence.jdbc.url" value="objectdb://localhost:6136/miBD.odb;create=true"/>
+    </properties>
+  </persistence-unit>
+</persistence>
+```
+
+
+**Modelo de persistencia**
+- Definición de entidades persistentes en Java usando anotaciones JPA.
+- Ejemplo de clase Java anotada como entidad.
+
+Ejemplo de clase Entity:
+
+```java
+// Nota: Recuerda añadir esta clase al archivo persistence.xml dentro de la etiqueta <class>.
+import jakarta.persistence.*;
+
+@Entity
+public class Empleado {
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long id;
+	private String nombre;
+	private int edad;
+	// Getters y setters
+}
+```
+
+
+Ejemplo de clase Embeddable:
+
+```java
+@Embeddable
+public class Direccion {
+	private String calle;
+	private String ciudad;
+}
+```
+
+**Operaciones básicas**
+En una aplicación que va a usar la **API JPA** se va hacer uso de los interfaces:
+
+[conexionesJPA](img/conexionesJPA.jpg)
+* EntityManagerFactory: Es una interface que, entre otras cosas, permite crear instancias de objetos `EntityManager`.
+* EntityManager: Permite crear un contexto de persistencia, una conexión a una base de datos en la que se pueden persistir los datos.
+* EntityTRansaction: Permite controlar transacciones dentro de un contexto de persistencia.
+* Query: Permite realizar y controlar consultas sobre clases persistentes.
+
+- Ejemplo de apertura y cierre de conexión (`EntityManager`).
+- Ejemplo de inserción, consulta, actualización y borrado de objetos.
+- Uso de transacciones.
+
+Ejemplo de uso de EntityManager y transacciones:
+
+```java
+EntityManagerFactory emf = Persistence.createEntityManagerFactory("miUnidadPersistencia");
+try (emf) {
+	EntityManager em = emf.createEntityManager();
+	try {
+		em.getTransaction().begin();
+		Empleado emp = new Empleado();
+		emp.setNombre("Ana");
+		emp.setEdad(30);
+		em.persist(emp); // Aunque este objeto, realmente quedará guardado cuando se confirme la transacción de la que forme parte esta operación. Mientras tanto, el objeto estará en un estado managed
+		// Nota: El método persist() marca el objeto para ser guardado de forma persistente en la base de datos al hacer commit de la transacción.
+		// Puede lanzar errores como:
+		// - EntityExistsException: si el objeto ya existe en la base de datos.
+		// - IllegalArgumentException: si el objeto no es una entidad o es nulo.
+		// - TransactionRequiredException: si no hay una transacción activa.
+		em.getTransaction().commit();
+	} catch (Exception ex) {
+		if (em.getTransaction().isActive()) {
+			em.getTransaction().rollback();
+		}
+		ex.printStackTrace();
+	} finally {
+		em.close();
+	}
+}
+```
+
+Consulta de objetos:
+* Para obtener los objetos de una Entity Class almacenados en la base de datos, podemos usar Query con lenguaje **JPQL** y ejecutar la query
+* La sintaxis JPQL se basa en el lenguaje SQL.
+* En las consultas, en los nombres de las clases y de los atributos de las clases se diferencian mayúsculas y minúsculas.
+* La API JPA proporciona varias formas de obtener objetos de la BD.
+
+```java
+List<Empleado> empleados = em.createQuery("SELECT e FROM Empleado e", Empleado.class).getResultList();
+```
+
+Actualización de objetos:
+
+```java
+em.getTransaction().begin();
+emp.setEdad(31);
+em.merge(emp);
+em.getTransaction().commit();
+```
+
+Borrado de objetos:
+
+```java
+em.getTransaction().begin();
+em.remove(emp);
+em.getTransaction().commit();
+```
+
+
+**Consultas**
+- Ejemplo de consultas JPQL (Java Persistence Query Language) sobre entidades almacenadas en ObjectDB.
+
+Ejemplo de consulta JPQL:
+
+```java
+TypedQuery<Empleado> consulta = em.createQuery("SELECT e FROM Empleado e WHERE e.edad > :edad", Empleado.class);
+consulta.setParameter("edad", 25);
+List<Empleado> resultado = consulta.getResultList();
+```
+
+Ejemplo de NamedQuery:
+
+```java
+@NamedQuery(name = "Empleado.findByDepartamento", query = "SELECT e FROM Empleado e WHERE e.departamento.id = :idDept")
+```
+
+Ejecución:
+
+```java
+TypedQuery<Empleado> consulta = em.createNamedQuery("Empleado.findByDepartamento", Empleado.class);
+consulta.setParameter("idDept", 7);
+List<Empleado> resultado = consulta.getResultList();
+```
+
+Ejemplo de consulta con JOIN:
+
+```java
+List<Object[]> datos = em.createQuery("SELECT e.nombre, d.nombre FROM Empleado e JOIN e.departamento d").getResultList();
+```
+
+Ejemplo de consulta de actualización:
+
+```java
+em.getTransaction().begin();
+Query q = em.createQuery("UPDATE Empleado e SET e.edad = e.edad + 1 WHERE e.id > 7");
+q.executeUpdate();
+em.getTransaction().commit();
+```
+
+**Consultas con Criteria API**
+
+La API Criteria permite construir consultas de forma dinámica:
+
+```java
+CriteriaBuilder cb = em.getCriteriaBuilder();
+CriteriaQuery<Empleado> cq = cb.createQuery(Empleado.class);
+Root<Empleado> root = cq.from(Empleado.class);
+cq.select(root).where(cb.gt(root.get("edad"), 25));
+List<Empleado> resultado = em.createQuery(cq).getResultList();
+```
+
+**Ventajas de ObjectDB**
+- Alto rendimiento.
+- Sencillez de uso.
+- Integración nativa con Java y frameworks estándar.
+
+**Conclusión**
+- ObjectDB es una opción recomendada para la persistencia de objetos en aplicaciones Java, gracias a su compatibilidad con los principales estándares y su facilidad de integración.
 
 **¿Cuáles de estos gestores son embebidos?**
 
