@@ -88,6 +88,11 @@ show dbs
 ```
 Esto mostrará las bases de datos de prueba (por defecto suelen ser `admin`, `local` y `config`).
 
+### Consultar las colecciones de una base de datos
+En el shell de MongoDB, ejecuta:
+```js
+show collections
+```
 ### Crear una base de datos y una colección de prueba
 En el shell:
 ```js

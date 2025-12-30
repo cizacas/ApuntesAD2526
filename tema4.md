@@ -176,7 +176,7 @@ Finalmente el archivo queda utilizando **ObjectDB embebido**:
 - Definición de entidades persistentes en Java usando anotaciones JPA.
 - Ejemplo de clase Java anotada como entidad.
 
-Ejemplo de clase Entity:
+**Ejemplo de clase Entity:**
 
 ```java
 // Nota: Recuerda añadir esta clase al archivo persistence.xml dentro de la etiqueta <class>.
@@ -193,8 +193,7 @@ public class Empleado {
 }
 ```
 
-
-Ejemplo de clase Embeddable:
+**Ejemplo de clase Embeddable:**
 
 ```java
 @Embeddable
@@ -217,7 +216,7 @@ En una aplicación que va a usar la **API JPA** se va a hacer uso de los interfa
 - Ejemplo de inserción, consulta, actualización y borrado de objetos.
 - Uso de transacciones.
 
-Ejemplo de uso de EntityManager y transacciones:
+**Ejemplo de uso de EntityManager y transacciones:**
 
 ```java
 EntityManagerFactory emf = Persistence.createEntityManagerFactory("miUnidadPersistencia");
@@ -246,19 +245,21 @@ try (emf) {
 }
 ```
 
-Consulta de objetos:
+**Consulta de objetos:**
 * Para obtener los objetos de una Entity Class almacenados en la base de datos, podemos usar Query con lenguaje **JPQL** y ejecutar la query
 * La sintaxis JPQL se basa en el lenguaje SQL.
 * En las consultas, en los nombres de las clases y de los atributos de las clases se diferencian mayúsculas y minúsculas.
 * La API JPA proporciona varias formas de obtener objetos de la BD.
 
 ```java
+//Recupera todos los empleados de la base de datos y los guarda en la lista empleados.
 List<Empleado> empleados = em.createQuery("SELECT e FROM Empleado e", Empleado.class).getResultList();
 ```
 
-Actualización de objetos:
+**Actualización de objetos:**
 
 ```java
+//actualiza la edad a 31 años del empleado con id igual a 1 
 Empleado emp=em.find(Empleado.class,1);
 em.getTransaction().begin();
 emp.setEdad(31);
@@ -266,9 +267,10 @@ em.merge(emp);
 em.getTransaction().commit();
 ```
 
-Borrado de objetos:
+**Borrado de objetos:**
 
 ```java
+//borra el empleado con id igual a 1
 Empleado emp=em.find(Empleado.class,1);
 em.getTransaction().begin();
 em.remove(emp);
@@ -276,39 +278,56 @@ em.getTransaction().commit();
 ```
 
 **Consultas**
-- Ejemplo de consultas JPQL (Java Persistence Query Language) sobre entidades almacenadas en ObjectDB.
+Ejemplo de consultas JPQL (Java Persistence Query Language) sobre entidades almacenadas en ObjectDB.
 
-Ejemplo de consulta JPQL:
+**Ejemplo de consulta JPQL:**
 
 ```java
+//Obtiene todos los empleados mayores de 25 años y los guarda en la lista resultado.
 TypedQuery<Empleado> consulta = em.createQuery("SELECT e FROM Empleado e WHERE e.edad > :edad", Empleado.class);
 consulta.setParameter("edad", 25);
 List<Empleado> resultado = consulta.getResultList();
 ```
 
-Ejemplo de NamedQuery:
+**Ejemplo de NamedQuery:**
 
 ```java
+//definida en la entidad Empleado
 @NamedQuery(name = "Empleado.findByDepartamento", query = "SELECT e FROM Empleado e WHERE e.departamento.id = :idDept")
 ```
 
-Ejecución:
+**Ejecución:**
 
 ```java
+// Utiliza la @NamedQuery definida en el punto anterior
+// Obtiene todos los empleados que pertenecen al departamento con id 7 y los guarda en la lista resultado.
 TypedQuery<Empleado> consulta = em.createNamedQuery("Empleado.findByDepartamento", Empleado.class);
 consulta.setParameter("idDept", 7);
 List<Empleado> resultado = consulta.getResultList();
 ```
 
-Ejemplo de consulta con JOIN:
+**Ejemplo de consulta con JOIN:**
 
 ```java
+/*devuelve una lista de arrays de objetos (List<Object[]>).
+Cada elemento del listado es un array de dos posiciones:
+En la posición 0: el nombre del empleado (e.nombre)
+En la posición 1: el nombre del departamento (d.nombre) */
+
 List<Object[]> datos = em.createQuery("SELECT e.nombre, d.nombre FROM Empleado e JOIN e.departamento d").getResultList();
+
+for (Object[] fila : datos) {
+    String nombreEmpleado = (String) fila[0];
+    String nombreDepartamento = (String) fila[1];
+    System.out.println(nombreEmpleado + " - " + nombreDepartamento);
+}
+
 ```
 
-Ejemplo de consulta de actualización:
+**Ejemplo de consulta de actualización:**
 
 ```java
+//suma un año a la edad de los empleados que tengan un id superior a 7
 em.getTransaction().begin();
 Query q = em.createQuery("UPDATE Empleado e SET e.edad = e.edad + 1 WHERE e.id > 7");
 q.executeUpdate();
@@ -325,6 +344,7 @@ em.getTransaction().commit();
 Para realizar con Criteria una consulta de todos los empleados, resultaría complejo ya que tendríamos que hacer:
 
 ```java
+//consulta de todos los empleados
 CriteriaBuilder cb = em.getCriteriaBuilder();
 CriteriaQuery<Empleado> cq = cb.createQuery(Empleado.class);
 Root<Empleado> root = cq.from(Empleado.class);
@@ -337,9 +357,8 @@ List<Empleado> resultado = em.createQuery(cq).getResultList();
 * *CriteriaQuery.select*: Para especificar los objetos o campos de objeto que queremos devolver.
 * *CriteriaQuery.where*: Para establecer las condiciones de filtrado de la consulta.
 
-Ejemplo de obtención de datos de empleados de más de 25 años
-
 ```java
+//Ejemplo de obtención de datos de empleados de más de 25 años
 CriteriaBuilder cb = em.getCriteriaBuilder();
 CriteriaQuery<Empleado> cq = cb.createQuery(Empleado.class);
 Root<Empleado> root = cq.from(Empleado.class);
@@ -354,7 +373,7 @@ List<Empleado> resultado = em.createQuery(cq).getResultList();
 - Integración nativa con Java y frameworks estándar.
 
 **Conclusión**
-- ObjectDB es una opción recomendada para la persistencia de objetos en aplicaciones Java, gracias a su compatibilidad con los principales estándares y su facilidad de integración.
+ObjectDB es una opción recomendada para la persistencia de objetos en aplicaciones Java, gracias a su compatibilidad con los principales estándares y su facilidad de integración.
 
 ### Herramientas para trabajar con ObjectDB: ObjectDB Explorer
 
