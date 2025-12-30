@@ -198,3 +198,55 @@ public class ConexionMongoDB {
 
 Este ejemplo conecta con la base de datos `testdb` en el servidor local. Si la base de datos no existe, MongoDB la crea automáticamente al insertar datos.
 
+
+## 8. Importar un archivo JSON a una colección en MongoDB
+
+Para importar datos desde un archivo JSON a una colección de MongoDB, utiliza la herramienta de línea de comandos `mongoimport`, incluida con la instalación de MongoDB.
+
+### Comando básico
+```bash
+mongoimport --db <nombre_base_datos> --collection <nombre_coleccion> --file <ruta_al_archivo.json> [opciones]
+```
+
+### Opciones principales
+- `--db` : Nombre de la base de datos de destino.
+- `--collection` : Nombre de la colección de destino.
+- `--file` : Ruta al archivo JSON a importar.
+- `--jsonArray` : Indica que el archivo contiene un array de documentos JSON (usa esta opción si tu archivo JSON empieza y termina con corchetes []).
+- `--drop` : (Opcional) Borra la colección antes de importar los datos.
+
+### Ejemplo
+Supón que tienes un archivo llamado `datos.json` con un array de documentos y quieres importarlo a la base de datos `geografia` y la colección `ccaa`:
+
+```bash
+mongoimport --db geografia --collection ccaa --file datos.json --jsonArray
+```
+
+Esto importará todos los documentos del archivo `datos.json` a la colección `ccaa` de la base de datos `geografia`.
+
+
+## 9. Exportar una colección de MongoDB a un archivo JSON
+
+Para exportar datos de una colección de MongoDB a un archivo JSON, utiliza la herramienta de línea de comandos `mongoexport`, incluida con la instalación de MongoDB.
+
+### Comando básico
+```bash
+mongoexport --db <nombre_base_datos> --collection <nombre_coleccion> --out <ruta_al_archivo.json> [opciones]
+```
+
+### Opciones principales
+- `--db` : Nombre de la base de datos de origen.
+- `--collection` : Nombre de la colección a exportar.
+- `--out` : Ruta y nombre del archivo JSON de salida.
+- `--jsonArray` : (Opcional) Exporta los documentos como un array JSON.
+- `--query` : (Opcional) Permite exportar solo los documentos que cumplan una condición.
+
+### Ejemplo
+Supón que quieres exportar la colección `ccaa` de la base de datos `geografia` a un archivo llamado `ccaa_export.json`:
+
+```bash
+mongoexport --db geografia --collection ccaa --out ccaa_export.json --jsonArray
+```
+
+Esto exportará todos los documentos de la colección `ccaa` de la base de datos `geografia` al archivo `ccaa_export.json` en formato JSON.
+

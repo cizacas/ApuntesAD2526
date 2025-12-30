@@ -76,6 +76,16 @@ La elección de la instalación depende de las necesidades del proyecto y del en
 
 Para interactuar con MongoDB desde una aplicación, es necesario establecer una conexión utilizando un driver específico. Ejemplo en Java usando el driver oficial:
 
+Puedes añadirlo a tu proyecto Maven con:
+
+```xml
+<dependency>
+  <groupId>org.mongodb</groupId>
+  <artifactId>mongodb-driver-sync</artifactId>
+  <version>5.6.2</version>
+</dependency>
+```
+
 ```java
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
@@ -639,4 +649,4 @@ for (Document doc : resultado) {
 }
 // ...
 ```
-:computer: Hoja01 y Hoja02
+:computer: Hoja01, Hoja02, Hoja03 y Hoja04
